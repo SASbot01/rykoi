@@ -16,6 +16,8 @@ interface PackOpeningProps {
   isOpen: boolean;
   onClose: () => void;
   packTier: number;
+  packImage?: string;
+  packName?: string;
   cards: NFTCard[];
 }
 
@@ -35,7 +37,7 @@ const RARITY_GLOW = {
   MYTHIC: '0 0 50px rgba(255, 215, 0, 0.7)',
 };
 
-export function PackOpening({ isOpen, onClose, packTier, cards }: PackOpeningProps) {
+export function PackOpening({ isOpen, onClose, packTier, packImage, packName, cards }: PackOpeningProps) {
   const [phase, setPhase] = useState<'intro' | 'revealing' | 'revealed'>('intro');
   const [revealedIndex, setRevealedIndex] = useState(-1);
 
@@ -154,21 +156,11 @@ export function PackOpening({ isOpen, onClose, packTier, cards }: PackOpeningPro
                 animate={{ scale: 1, opacity: 1 }}
                 className="text-center"
               >
-                {/* Pack Visual */}
+                {/* Pack Visual - Real Image */}
                 <motion.div
-                  className="
-                    relative w-64 h-80 mx-auto mb-8
-                    bg-ryoiki-black
-                    border-2 border-ryoiki-red
-                    rounded-2xl
-                  "
+                  className="relative w-48 mx-auto mb-8"
                   animate={{
                     rotateY: [0, 5, -5, 0],
-                    boxShadow: [
-                      '0 0 40px rgba(255, 0, 0, 0.3)',
-                      '0 0 60px rgba(255, 0, 0, 0.5)',
-                      '0 0 40px rgba(255, 0, 0, 0.3)',
-                    ],
                   }}
                   transition={{
                     duration: 2,
@@ -176,32 +168,35 @@ export function PackOpening({ isOpen, onClose, packTier, cards }: PackOpeningPro
                     ease: 'easeInOut',
                   }}
                 >
-                  {/* Pack Design */}
-                  <div className="absolute inset-4 border border-ryoiki-red/30 rounded-xl flex flex-col items-center justify-center">
-                    {/* Ryoiki Symbol */}
-                    <div className="w-16 h-16 border-2 border-ryoiki-red rounded-full flex items-center justify-center mb-4">
-                      <span className="text-ryoiki-red font-bold text-2xl">R</span>
+                  {packImage ? (
+                    <img
+                      src={packImage}
+                      alt={packName || 'Pack'}
+                      className="w-full h-auto drop-shadow-[0_0_40px_rgba(255,0,0,0.5)]"
+                    />
+                  ) : (
+                    <div className="w-48 h-72 bg-ryoiki-red/20 rounded-2xl border border-ryoiki-red/50 flex items-center justify-center">
+                      <span className="text-4xl font-display font-bold text-ryoiki-red">${packTier}</span>
                     </div>
-                    <div className="text-5xl font-bold font-display text-ryoiki-red">
-                      {packTier}€
-                    </div>
-                    <div className="text-sm font-mono text-ryoiki-white/50 mt-2 tracking-widest">
-                      GENESIS PACK
-                    </div>
-                  </div>
+                  )}
 
-                  {/* Corner accents */}
-                  <div className="absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 border-ryoiki-red" />
-                  <div className="absolute top-2 right-2 w-4 h-4 border-r-2 border-t-2 border-ryoiki-red" />
-                  <div className="absolute bottom-2 left-2 w-4 h-4 border-l-2 border-b-2 border-ryoiki-red" />
-                  <div className="absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 border-ryoiki-red" />
+                  {/* Glow effect behind pack */}
+                  <div
+                    className="absolute inset-0 -z-10 blur-2xl"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(255, 0, 0, 0.4) 0%, transparent 70%)',
+                    }}
+                  />
                 </motion.div>
 
-                <h2 className="text-3xl font-bold font-display text-ryoiki-white mb-2">
-                  領域展開
+                <h2 className="text-3xl font-display font-bold text-ryoiki-white mb-2">
+                  {packName || 'Genesis Pack'}
                 </h2>
-                <p className="text-ryoiki-white/50 mb-8 font-mono">
-                  This pack contains 3 Genesis NFTs
+                <p className="text-ryoiki-white/50 mb-2 font-body">
+                  <span className="text-ryoiki-red font-bold">${packTier}</span>
+                </p>
+                <p className="text-ryoiki-white/40 mb-8 font-mono text-sm">
+                  Contains 3 cards with dynamic rarities
                 </p>
 
                 <motion.button
@@ -210,7 +205,7 @@ export function PackOpening({ isOpen, onClose, packTier, cards }: PackOpeningPro
                     py-4 px-12
                     bg-ryoiki-red
                     rounded-full
-                    font-bold text-lg
+                    font-display font-bold text-lg
                     flex items-center gap-2
                     mx-auto
                     text-ryoiki-white
@@ -227,7 +222,7 @@ export function PackOpening({ isOpen, onClose, packTier, cards }: PackOpeningPro
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
                   <Sparkles className="w-5 h-5" />
-                  EXPAND DOMAIN
+                  Open Pack
                 </motion.button>
               </motion.div>
             )}
@@ -271,7 +266,7 @@ export function PackOpening({ isOpen, onClose, packTier, cards }: PackOpeningPro
                       >
                         <div className="absolute inset-4 border border-ryoiki-red/20 rounded-lg flex items-center justify-center">
                           <div className="w-12 h-12 border border-ryoiki-red rounded-full flex items-center justify-center">
-                            <span className="text-ryoiki-red font-bold">R</span>
+                            <span className="text-ryoiki-red font-display font-bold">R</span>
                           </div>
                         </div>
                       </div>
@@ -319,11 +314,11 @@ export function PackOpening({ isOpen, onClose, packTier, cards }: PackOpeningPro
                             {card.rarity}
                           </div>
 
-                          <h4 className="font-bold text-ryoiki-white text-sm">
+                          <h4 className="font-display font-bold text-ryoiki-white text-sm">
                             {card.name}
                           </h4>
 
-                          <p className="text-xs text-ryoiki-white/50 font-mono">
+                          <p className="text-xs text-ryoiki-white/50 font-body">
                             {card.perkName}
                           </p>
                         </div>
@@ -357,12 +352,12 @@ export function PackOpening({ isOpen, onClose, packTier, cards }: PackOpeningPro
                         bg-ryoiki-white
                         text-ryoiki-black
                         rounded-full
-                        font-bold text-lg
+                        font-display font-bold text-lg
                       "
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      CLAIM YOUR NFTs
+                      Claim Cards
                     </motion.button>
                   </motion.div>
                 )}

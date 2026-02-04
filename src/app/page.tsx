@@ -5,14 +5,15 @@ import { useState } from 'react';
 import { Zap, Users, Package, TrendingUp, ChevronRight, Sparkles } from 'lucide-react';
 import { BoxCard } from '@/components/BoxCard';
 import { PackOpening } from '@/components/PackOpening';
+import { PACKS, type PackData } from '@/lib/packs-data';
 
-// Mock Data
+// Mock Data for boxes
 const MOCK_BOXES = [
   {
     id: '1',
     name: 'Prismatic Evolutions',
     description: 'Booster Box — 36 Packs',
-    imageUrl: '/boxes/prismatic.jpg',
+    imageUrl: '/packs/prismatic-evolutions.png',
     targetPrice: 400,
     currentRaised: 312,
     contributorsCount: 23,
@@ -22,9 +23,9 @@ const MOCK_BOXES = [
   },
   {
     id: '2',
-    name: 'Surging Sparks',
+    name: 'Rising Heroes',
     description: 'Elite Trainer Box',
-    imageUrl: '/boxes/surging.jpg',
+    imageUrl: '/packs/heroes-ascendentes.png',
     targetPrice: 85,
     currentRaised: 85,
     contributorsCount: 12,
@@ -32,9 +33,9 @@ const MOCK_BOXES = [
   },
   {
     id: '3',
-    name: 'Crown Zenith',
-    description: 'Premium Collection',
-    imageUrl: '/boxes/crown.jpg',
+    name: 'Obsidian Flames',
+    description: 'Booster Box — 36 Packs',
+    imageUrl: '/packs/black-flame.png',
     targetPrice: 150,
     currentRaised: 67,
     contributorsCount: 8,
@@ -43,17 +44,15 @@ const MOCK_BOXES = [
   },
 ];
 
-const PACK_TIERS = [1, 2, 5, 10, 20, 50, 100];
-
 const STATS = [
   { label: 'Breakers', value: '2,847', icon: Users },
-  { label: 'Genesis NFTs', value: '100', icon: Package },
-  { label: 'Total Broken', value: '€47K', icon: TrendingUp },
+  { label: 'Packs Available', value: '6', icon: Package },
+  { label: 'Total Opened', value: '$47K', icon: TrendingUp },
 ];
 
 export default function HomePage() {
   const [isPackOpen, setIsPackOpen] = useState(false);
-  const [selectedPack, setSelectedPack] = useState(5);
+  const [selectedPack, setSelectedPack] = useState<PackData | null>(null);
   const userCoins = 250;
 
   const handleContribute = async (amount: number) => {
@@ -61,9 +60,11 @@ export default function HomePage() {
     console.log(`Contributed ${amount} coins`);
   };
 
-  const handleBuyPack = (tier: number) => {
-    setSelectedPack(tier);
-    setIsPackOpen(true);
+  const handleBuyPack = (pack: PackData) => {
+    if (pack.price <= userCoins) {
+      setSelectedPack(pack);
+      setIsPackOpen(true);
+    }
   };
 
   const mockCards = [
@@ -114,7 +115,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2 px-5 py-2.5 glass-red rounded-full">
               <span className="text-ryoiki-white/50 text-sm font-body">Balance</span>
-              <span className="font-display font-bold text-ryoiki-red">{userCoins}€</span>
+              <span className="font-display font-bold text-ryoiki-red">${userCoins}</span>
             </div>
             <button className="btn-secondary">
               Buy Coins
@@ -188,9 +189,9 @@ export default function HomePage() {
             transition={{ delay: 0.3 }}
             className="text-xl md:text-2xl text-ryoiki-white/60 mb-12 max-w-2xl mx-auto font-body font-light leading-relaxed"
           >
-            Enter the domain. Crowdfund legendary openings.
+            Open packs. Collect NFTs. Win real cards.
             <br />
-            <span className="text-ryoiki-white font-medium">Own your destiny.</span>
+            <span className="text-ryoiki-white font-medium">Enter the domain.</span>
           </motion.p>
 
           {/* Stats - Modern Cards */}
@@ -235,13 +236,112 @@ export default function HomePage() {
               whileTap={{ scale: 0.98 }}
             >
               <Zap className="w-5 h-5" />
-              Enter Domain
+              Open Packs
               <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
             <button className="btn-secondary text-base">
-              View Genesis Collection
+              View Collection
             </button>
           </motion.div>
+        </div>
+      </section>
+
+      {/* ===== PACKS SECTION ===== */}
+      <section className="relative py-24 px-6 z-10">
+        {/* Abstract background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-ryoiki-red/5 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2 px-4 py-2 glass rounded-full mb-6"
+            >
+              <Package className="w-4 h-4 text-ryoiki-red" />
+              <span className="text-sm font-medium text-ryoiki-white/60">Available Packs</span>
+            </motion.div>
+
+            <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-4">
+              Open <span className="gradient-text">Packs</span>
+            </h2>
+            <p className="text-ryoiki-white/50 max-w-xl mx-auto font-body text-lg">
+              Each pack contains cards with dynamic rarities.
+              Pull rare cards and win physical copies.
+            </p>
+          </div>
+
+          {/* Packs Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {PACKS.map((pack, index) => (
+              <motion.button
+                key={pack.id}
+                onClick={() => handleBuyPack(pack)}
+                disabled={pack.price > userCoins}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.05 }}
+                className={`
+                  relative
+                  glass
+                  rounded-3xl
+                  p-4
+                  flex flex-col items-center
+                  transition-all duration-300
+                  overflow-hidden
+                  ${pack.price <= userCoins
+                    ? 'hover:shadow-glow cursor-pointer group'
+                    : 'opacity-40 cursor-not-allowed'
+                  }
+                `}
+                whileHover={pack.price <= userCoins ? { scale: 1.03, y: -5 } : {}}
+                whileTap={pack.price <= userCoins ? { scale: 0.97 } : {}}
+              >
+                {/* Featured badge */}
+                {pack.featured && (
+                  <div className="absolute top-2 right-2 px-2 py-0.5 bg-ryoiki-red rounded-full text-[10px] font-bold">
+                    HOT
+                  </div>
+                )}
+
+                {/* Background glow on hover */}
+                <div className="absolute inset-0 bg-gradient-to-b from-ryoiki-red/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
+
+                {/* Pack Image */}
+                <div className="relative w-full aspect-[2/3] mb-3">
+                  <img
+                    src={pack.image}
+                    alt={pack.name}
+                    className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,0,0,0.3)] group-hover:drop-shadow-[0_0_25px_rgba(255,0,0,0.5)] transition-all duration-300"
+                  />
+                </div>
+
+                {/* Pack Info */}
+                <div className="relative text-center w-full">
+                  <h3 className="font-display font-bold text-sm text-ryoiki-white truncate">
+                    {pack.name}
+                  </h3>
+                  <p className="text-[10px] text-ryoiki-white/40 mb-2 truncate">
+                    {pack.set}
+                  </p>
+
+                  {/* Price */}
+                  <div className="flex items-center justify-center gap-1 py-2 px-3 bg-ryoiki-red/20 rounded-xl group-hover:bg-ryoiki-red/30 transition-colors">
+                    <span className="text-lg font-display font-bold text-ryoiki-red">
+                      ${pack.price}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Bottom accent */}
+                <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-ryoiki-red/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              </motion.button>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -259,7 +359,7 @@ export default function HomePage() {
                 <span className="text-sm font-mono text-ryoiki-red tracking-wider">LIVE</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight">
-                Active Breaks
+                Box Breaks
               </h2>
             </div>
             <motion.button
@@ -290,79 +390,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== GENESIS PACKS SECTION ===== */}
-      <section className="relative py-24 px-6 z-10">
-        {/* Abstract background */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-ryoiki-red/5 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-4 py-2 glass rounded-full mb-6"
-            >
-              <Package className="w-4 h-4 text-ryoiki-red" />
-              <span className="text-sm font-medium text-ryoiki-white/60">Limited Collection</span>
-            </motion.div>
-
-            <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-4">
-              Genesis <span className="gradient-text">Packs</span>
-            </h2>
-            <p className="text-ryoiki-white/50 max-w-xl mx-auto font-body text-lg">
-              100 unique NFTs with real utility. Each pack contains 3 cards
-              with dynamic rarities and exclusive perks.
-            </p>
-          </div>
-
-          {/* Pack Tiers Grid - Modern Style */}
-          <div className="flex flex-wrap justify-center gap-4">
-            {PACK_TIERS.map((tier, index) => (
-              <motion.button
-                key={tier}
-                onClick={() => handleBuyPack(tier)}
-                disabled={tier > userCoins}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-                className={`
-                  relative w-28 h-36
-                  glass
-                  rounded-3xl
-                  flex flex-col items-center justify-center
-                  transition-all duration-300
-                  overflow-hidden
-                  ${tier <= userCoins
-                    ? 'hover:shadow-glow cursor-pointer group'
-                    : 'opacity-30 cursor-not-allowed'
-                  }
-                `}
-                whileHover={tier <= userCoins ? { scale: 1.05, y: -5 } : {}}
-                whileTap={tier <= userCoins ? { scale: 0.95 } : {}}
-              >
-                {/* Background glow on hover */}
-                <div className="absolute inset-0 bg-gradient-to-b from-ryoiki-red/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
-
-                {/* Price */}
-                <span className="relative text-3xl font-display font-bold text-ryoiki-white group-hover:text-ryoiki-red transition-colors">
-                  {tier}€
-                </span>
-                <span className="relative text-xs text-ryoiki-white/40 font-body mt-1">
-                  Pack
-                </span>
-
-                {/* Bottom accent */}
-                <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-ryoiki-red/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ===== FOOTER ===== */}
       <footer className="relative py-16 px-6 border-t border-white/5 z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
@@ -388,7 +415,9 @@ export default function HomePage() {
       <PackOpening
         isOpen={isPackOpen}
         onClose={() => setIsPackOpen(false)}
-        packTier={selectedPack}
+        packTier={selectedPack?.price || 6}
+        packImage={selectedPack?.image}
+        packName={selectedPack?.name}
         cards={mockCards}
       />
     </main>
