@@ -67,11 +67,6 @@ export default function HomePage() {
     }
   };
 
-  const mockCards = [
-    { id: '1', name: 'Coin Surge', imageUrl: '/nfts/1.png', rarity: 'COMMON' as const, perkName: '+5% coins extra' },
-    { id: '2', name: 'Amplifier Node', imageUrl: '/nfts/2.png', rarity: 'RARE' as const, perkName: 'x1.2 bar multiplier' },
-    { id: '3', name: 'Genesis Vault Key', imageUrl: '/nfts/3.png', rarity: 'LEGENDARY' as const, perkName: 'Secret box access' },
-  ];
 
   return (
     <main className="relative min-h-screen bg-ryoiki-black font-body">
@@ -418,7 +413,6 @@ export default function HomePage() {
         packTier={selectedPack?.price || 6}
         packImage={selectedPack?.image}
         packName={selectedPack?.name}
-        cards={mockCards}
       />
     </main>
   );

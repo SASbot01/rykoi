@@ -2,15 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { Sparkles, X } from 'lucide-react';
-
-interface NFTCard {
-  id: string;
-  name: string;
-  imageUrl: string;
-  rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'MYTHIC';
-  perkName: string;
-}
+import { Sparkles, X, Instagram, Calendar, Clock, CheckCircle, ExternalLink } from 'lucide-react';
 
 interface PackOpeningProps {
   isOpen: boolean;
@@ -18,47 +10,40 @@ interface PackOpeningProps {
   packTier: number;
   packImage?: string;
   packName?: string;
-  cards: NFTCard[];
 }
 
-const RARITY_COLORS = {
-  COMMON: '#FFFFFF',
-  RARE: '#00FFFF',
-  EPIC: '#FF0000',
-  LEGENDARY: '#FF3333',
-  MYTHIC: '#FFD700',
-};
+export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: PackOpeningProps) {
+  const [phase, setPhase] = useState<'confirm' | 'processing' | 'success'>('confirm');
 
-const RARITY_GLOW = {
-  COMMON: '0 0 20px rgba(255, 255, 255, 0.3)',
-  RARE: '0 0 30px rgba(0, 255, 255, 0.5)',
-  EPIC: '0 0 30px rgba(255, 0, 0, 0.5)',
-  LEGENDARY: '0 0 40px rgba(255, 51, 51, 0.6)',
-  MYTHIC: '0 0 50px rgba(255, 215, 0, 0.7)',
-};
-
-export function PackOpening({ isOpen, onClose, packTier, packImage, packName, cards }: PackOpeningProps) {
-  const [phase, setPhase] = useState<'intro' | 'revealing' | 'revealed'>('intro');
-  const [revealedIndex, setRevealedIndex] = useState(-1);
-
-  const startReveal = () => {
-    setPhase('revealing');
-    revealCards();
-  };
-
-  const revealCards = async () => {
-    for (let i = 0; i < cards.length; i++) {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setRevealedIndex(i);
-    }
-    setPhase('revealed');
+  const handlePurchase = async () => {
+    setPhase('processing');
+    // Simulate payment processing
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setPhase('success');
   };
 
   const handleClose = () => {
-    setPhase('intro');
-    setRevealedIndex(-1);
+    setPhase('confirm');
     onClose();
   };
+
+  // Calculate next Friday at 20:00
+  const getNextFriday = () => {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const daysUntilFriday = (5 - dayOfWeek + 7) % 7 || 7;
+    const nextFriday = new Date(now);
+    nextFriday.setDate(now.getDate() + daysUntilFriday);
+    nextFriday.setHours(20, 0, 0, 0);
+    return nextFriday;
+  };
+
+  const nextFriday = getNextFriday();
+  const formattedDate = nextFriday.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
 
   return (
     <AnimatePresence>
@@ -72,27 +57,27 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName, ca
             flex items-center justify-center
             bg-ryoiki-black/95
             backdrop-blur-xl
+            p-4
           "
         >
-          {/* Background Effects - Red Waves */}
+          {/* Background Effects */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {/* Radial Red Gradient */}
             <div className="
               absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-              w-[800px] h-[800px]
+              w-[600px] h-[600px]
               rounded-full
               blur-3xl
             "
               style={{
-                background: 'radial-gradient(circle, rgba(255, 0, 0, 0.2) 0%, rgba(139, 0, 0, 0.1) 50%, transparent 70%)',
+                background: 'radial-gradient(circle, rgba(255, 0, 0, 0.15) 0%, transparent 70%)',
               }}
             />
 
-            {/* Animated Red Particles */}
-            {[...Array(20)].map((_, i) => (
+            {/* Floating particles */}
+            {[...Array(15)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-1 h-1 bg-ryoiki-red rounded-full"
+                className="absolute w-1 h-1 bg-ryoiki-red/50 rounded-full"
                 initial={{
                   x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
                   y: (typeof window !== 'undefined' ? window.innerHeight : 800) + 10,
@@ -102,32 +87,9 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName, ca
                   opacity: [0, 1, 0],
                 }}
                 transition={{
-                  duration: Math.random() * 3 + 2,
+                  duration: Math.random() * 4 + 3,
                   repeat: Infinity,
                   delay: Math.random() * 2,
-                }}
-              />
-            ))}
-
-            {/* Concentric Wave Rings */}
-            {[...Array(3)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute top-1/2 left-1/2 border border-ryoiki-red/20 rounded-full"
-                style={{
-                  width: 300 + i * 200,
-                  height: 300 + i * 200,
-                  marginLeft: -(150 + i * 100),
-                  marginTop: -(150 + i * 100),
-                }}
-                animate={{
-                  scale: [1, 1.1, 1],
-                  opacity: [0.3, 0.1, 0.3],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  delay: i * 0.5,
                 }}
               />
             ))}
@@ -142,228 +104,214 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName, ca
               text-ryoiki-white/50
               hover:text-ryoiki-red
               transition-colors
+              z-10
             "
           >
             <X className="w-8 h-8" />
           </button>
 
           {/* Content */}
-          <div className="relative z-10 max-w-4xl mx-auto px-6">
-            {/* Intro Phase */}
-            {phase === 'intro' && (
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="text-center"
-              >
-                {/* Pack Visual - Real Image */}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="relative z-10 w-full max-w-lg"
+          >
+            {/* Confirm Phase */}
+            {phase === 'confirm' && (
+              <div className="glass rounded-4xl p-8 text-center">
+                {/* Pack Image */}
                 <motion.div
-                  className="relative w-48 mx-auto mb-8"
-                  animate={{
-                    rotateY: [0, 5, -5, 0],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
+                  className="relative w-40 mx-auto mb-6"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                 >
                   {packImage ? (
                     <img
                       src={packImage}
                       alt={packName || 'Pack'}
-                      className="w-full h-auto drop-shadow-[0_0_40px_rgba(255,0,0,0.5)]"
+                      className="w-full h-auto drop-shadow-[0_0_30px_rgba(255,0,0,0.4)]"
                     />
                   ) : (
-                    <div className="w-48 h-72 bg-ryoiki-red/20 rounded-2xl border border-ryoiki-red/50 flex items-center justify-center">
-                      <span className="text-4xl font-display font-bold text-ryoiki-red">${packTier}</span>
+                    <div className="w-40 h-56 bg-ryoiki-red/20 rounded-2xl border border-ryoiki-red/50 flex items-center justify-center">
+                      <span className="text-3xl font-display font-bold text-ryoiki-red">${packTier}</span>
                     </div>
                   )}
-
-                  {/* Glow effect behind pack */}
-                  <div
-                    className="absolute inset-0 -z-10 blur-2xl"
-                    style={{
-                      background: 'radial-gradient(circle, rgba(255, 0, 0, 0.4) 0%, transparent 70%)',
-                    }}
-                  />
                 </motion.div>
 
-                <h2 className="text-3xl font-display font-bold text-ryoiki-white mb-2">
-                  {packName || 'Genesis Pack'}
+                <h2 className="text-2xl font-display font-bold text-ryoiki-white mb-2">
+                  {packName || 'Pack'}
                 </h2>
-                <p className="text-ryoiki-white/50 mb-2 font-body">
-                  <span className="text-ryoiki-red font-bold">${packTier}</span>
-                </p>
-                <p className="text-ryoiki-white/40 mb-8 font-mono text-sm">
-                  Contains 3 cards with dynamic rarities
-                </p>
 
-                <motion.button
-                  onClick={startReveal}
-                  className="
-                    py-4 px-12
-                    bg-ryoiki-red
-                    rounded-full
-                    font-display font-bold text-lg
-                    flex items-center gap-2
-                    mx-auto
-                    text-ryoiki-white
-                  "
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  animate={{
-                    boxShadow: [
-                      '0 0 30px rgba(255, 0, 0, 0.5)',
-                      '0 0 50px rgba(255, 0, 0, 0.8)',
-                      '0 0 30px rgba(255, 0, 0, 0.5)',
-                    ],
-                  }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <Sparkles className="w-5 h-5" />
-                  Open Pack
-                </motion.button>
-              </motion.div>
-            )}
-
-            {/* Revealing Phase */}
-            {(phase === 'revealing' || phase === 'revealed') && (
-              <div className="space-y-8">
-                {/* Cards Grid */}
-                <div className="flex justify-center gap-6">
-                  {cards.map((card, index) => (
-                    <motion.div
-                      key={card.id}
-                      initial={{ rotateY: 180, scale: 0.8 }}
-                      animate={{
-                        rotateY: index <= revealedIndex ? 0 : 180,
-                        scale: index <= revealedIndex ? 1 : 0.8,
-                      }}
-                      transition={{
-                        duration: 0.6,
-                        type: 'spring',
-                        stiffness: 100,
-                      }}
-                      className="relative w-48 h-64"
-                      style={{
-                        transformStyle: 'preserve-3d',
-                        perspective: '1000px',
-                      }}
-                    >
-                      {/* Card Back */}
-                      <div
-                        className="
-                          absolute inset-0
-                          bg-ryoiki-black
-                          border-2 border-ryoiki-red/50
-                          rounded-xl
-                        "
-                        style={{
-                          transform: 'rotateY(180deg)',
-                          backfaceVisibility: 'hidden',
-                        }}
-                      >
-                        <div className="absolute inset-4 border border-ryoiki-red/20 rounded-lg flex items-center justify-center">
-                          <div className="w-12 h-12 border border-ryoiki-red rounded-full flex items-center justify-center">
-                            <span className="text-ryoiki-red font-display font-bold">R</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Card Front */}
-                      <div
-                        className="
-                          absolute inset-0
-                          bg-ryoiki-black
-                          border-2 rounded-xl
-                          overflow-hidden
-                        "
-                        style={{
-                          borderColor: RARITY_COLORS[card.rarity],
-                          boxShadow: index <= revealedIndex ? RARITY_GLOW[card.rarity] : 'none',
-                          backfaceVisibility: 'hidden',
-                        }}
-                      >
-                        {/* Card Image Area */}
-                        <div
-                          className="h-32"
-                          style={{
-                            background: `linear-gradient(135deg, ${RARITY_COLORS[card.rarity]}20 0%, transparent 100%)`,
-                          }}
-                        >
-                          {card.imageUrl && (
-                            <img
-                              src={card.imageUrl}
-                              alt={card.name}
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                        </div>
-
-                        {/* Card Info */}
-                        <div className="p-4 space-y-2">
-                          {/* Rarity Badge */}
-                          <div
-                            className="inline-block px-2 py-0.5 rounded text-xs font-bold font-mono"
-                            style={{
-                              backgroundColor: `${RARITY_COLORS[card.rarity]}20`,
-                              color: RARITY_COLORS[card.rarity],
-                            }}
-                          >
-                            {card.rarity}
-                          </div>
-
-                          <h4 className="font-display font-bold text-ryoiki-white text-sm">
-                            {card.name}
-                          </h4>
-
-                          <p className="text-xs text-ryoiki-white/50 font-body">
-                            {card.perkName}
-                          </p>
-                        </div>
-
-                        {/* Shine Effect */}
-                        {index <= revealedIndex && (
-                          <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                            initial={{ x: '-100%' }}
-                            animate={{ x: '100%' }}
-                            transition={{ duration: 0.8, delay: 0.3 }}
-                          />
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-ryoiki-red/20 rounded-full mb-6">
+                  <span className="text-2xl font-display font-bold text-ryoiki-red">${packTier}</span>
                 </div>
 
-                {/* Claim Button */}
-                {phase === 'revealed' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="text-center"
+                {/* Stream Info */}
+                <div className="glass-red rounded-2xl p-5 mb-6 text-left">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-xl flex items-center justify-center">
+                      <Instagram className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-ryoiki-white/60">Apertura en directo</p>
+                      <p className="font-display font-bold text-ryoiki-white">@s4sf__</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-ryoiki-white/80">
+                      <Calendar className="w-4 h-4 text-ryoiki-red" />
+                      <span className="text-sm capitalize">{formattedDate}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-ryoiki-white/80">
+                      <Clock className="w-4 h-4 text-ryoiki-red" />
+                      <span className="text-sm">20:00h (España)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-sm text-ryoiki-white/50 mb-6">
+                  Tu sobre se abrirá en directo. ¡No te lo pierdas!
+                </p>
+
+                {/* Buttons */}
+                <div className="flex flex-col gap-3">
+                  <motion.button
+                    onClick={handlePurchase}
+                    className="
+                      w-full py-4 px-6
+                      bg-ryoiki-red
+                      rounded-2xl
+                      font-display font-bold text-lg
+                      text-white
+                      flex items-center justify-center gap-2
+                    "
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <motion.button
-                      onClick={handleClose}
-                      className="
-                        py-4 px-12
-                        bg-ryoiki-white
-                        text-ryoiki-black
-                        rounded-full
-                        font-display font-bold text-lg
-                      "
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      Claim Cards
-                    </motion.button>
-                  </motion.div>
-                )}
+                    <Sparkles className="w-5 h-5" />
+                    Comprar Sobre
+                  </motion.button>
+
+                  <button
+                    onClick={handleClose}
+                    className="
+                      w-full py-3 px-6
+                      text-ryoiki-white/60
+                      font-body
+                      hover:text-ryoiki-white
+                      transition-colors
+                    "
+                  >
+                    Cancelar
+                  </button>
+                </div>
               </div>
             )}
-          </div>
+
+            {/* Processing Phase */}
+            {phase === 'processing' && (
+              <div className="glass rounded-4xl p-8 text-center">
+                <motion.div
+                  className="w-20 h-20 mx-auto mb-6 border-4 border-ryoiki-red/30 border-t-ryoiki-red rounded-full"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                />
+
+                <h2 className="text-2xl font-display font-bold text-ryoiki-white mb-2">
+                  Procesando...
+                </h2>
+                <p className="text-ryoiki-white/50">
+                  Confirmando tu compra
+                </p>
+              </div>
+            )}
+
+            {/* Success Phase */}
+            {phase === 'success' && (
+              <div className="glass rounded-4xl p-8 text-center">
+                {/* Success Icon */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                  className="w-20 h-20 mx-auto mb-6 bg-green-500/20 rounded-full flex items-center justify-center"
+                >
+                  <CheckCircle className="w-10 h-10 text-green-500" />
+                </motion.div>
+
+                <h2 className="text-2xl font-display font-bold text-ryoiki-white mb-2">
+                  ¡Sobre Reservado!
+                </h2>
+
+                <p className="text-ryoiki-white/60 mb-6">
+                  Tu sobre de <span className="text-ryoiki-white font-semibold">{packName}</span> está listo
+                </p>
+
+                {/* Stream Info Card */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-500/20 border border-white/10 rounded-2xl p-6 mb-6"
+                >
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <Instagram className="w-6 h-6 text-pink-400" />
+                    <span className="font-display font-bold text-xl text-ryoiki-white">@s4sf__</span>
+                  </div>
+
+                  <div className="text-center mb-4">
+                    <p className="text-ryoiki-white/60 text-sm mb-1">Tu sobre se abrirá</p>
+                    <p className="text-xl font-display font-bold text-ryoiki-white capitalize">
+                      {formattedDate}
+                    </p>
+                    <p className="text-2xl font-display font-bold text-ryoiki-red">
+                      20:00h
+                    </p>
+                  </div>
+
+                  <a
+                    href="https://instagram.com/s4sf__"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="
+                      inline-flex items-center gap-2
+                      px-6 py-3
+                      bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500
+                      rounded-xl
+                      font-display font-bold
+                      text-white
+                      hover:opacity-90
+                      transition-opacity
+                    "
+                  >
+                    Seguir en Instagram
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </motion.div>
+
+                <p className="text-sm text-ryoiki-white/40 mb-6">
+                  Recibirás una notificación antes del directo
+                </p>
+
+                <button
+                  onClick={handleClose}
+                  className="
+                    w-full py-4 px-6
+                    glass
+                    rounded-2xl
+                    font-display font-semibold
+                    text-ryoiki-white
+                    hover:bg-white/10
+                    transition-colors
+                  "
+                >
+                  Entendido
+                </button>
+              </div>
+            )}
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
