@@ -20,9 +20,9 @@ const BOXES = [
   {
     id: '1',
     name: 'Prismatic Evolutions',
-    description: 'Booster Box — 36 Packs',
+    description: 'Booster Box — 36 sobres',
     imageUrl: '/packs/prismatic-evolutions.png',
-    targetPrice: 400,
+    targetPrice: 280,
     currentRaised: 0,
     contributorsCount: 0,
     status: 'FUNDING' as const,
@@ -32,9 +32,9 @@ const BOXES = [
   {
     id: '2',
     name: 'Rising Heroes',
-    description: 'Elite Trainer Box',
+    description: 'Booster Box — 36 sobres',
     imageUrl: '/packs/heroes-ascendentes.png',
-    targetPrice: 230,
+    targetPrice: 150,
     currentRaised: 0,
     contributorsCount: 0,
     status: 'FUNDING' as const,
