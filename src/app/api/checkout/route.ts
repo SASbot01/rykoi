@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://rykoi.vercel.app'}?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://rykoi.vercel.app'}?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://ryoiki.vercel.app'}/success?pokeballs=${calculatedPokeballs}&amount=${amount}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://ryoiki.vercel.app'}?canceled=true`,
       metadata: {
         boxId: boxId || '',
         userId: userId || '',
