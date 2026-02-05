@@ -199,16 +199,26 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                 {/* Username - only for register */}
                 {mode === 'register' && (
                   <div>
-                    <label className="block text-sm text-ryoiki-white/60 mb-2">Usuario</label>
+                    <label className="block text-sm text-ryoiki-white/60 mb-2">Usuario de Instagram</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ryoiki-white/30" />
                       <input
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Tu nombre de usuario"
+                        placeholder="@tu_usuario_instagram"
                         className="input-modern w-full pl-12"
                       />
+                    </div>
+                    {/* Instagram warning */}
+                    <div className="mt-2 p-3 bg-ryoiki-red/20 border border-ryoiki-red/50 rounded-xl">
+                      <p className="text-xs text-ryoiki-red font-semibold flex items-center gap-2">
+                        <span className="w-2 h-2 bg-ryoiki-red rounded-full animate-pulse" />
+                        ¡IMPORTANTE! Usa tu usuario de Instagram exacto
+                      </p>
+                      <p className="text-xs text-ryoiki-white/60 mt-1">
+                        Lo necesitamos para verificar tu identidad y abrir tus sobres en directo.
+                      </p>
                     </div>
                   </div>
                 )}

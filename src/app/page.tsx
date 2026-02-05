@@ -409,6 +409,9 @@ export default function HomePage() {
                   {...box}
                   onContribute={handleContribute}
                   userCoins={userCoins}
+                  isLoggedIn={!!user}
+                  onRequireAuth={() => setIsAuthOpen(true)}
+                  userId={user?.id}
                 />
               </motion.div>
             ))}

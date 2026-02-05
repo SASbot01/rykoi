@@ -10,6 +10,9 @@ interface ContributeButtonProps {
   boxId: string;
   onContribute?: (amount: number) => Promise<void>;
   disabled?: boolean;
+  isLoggedIn?: boolean;
+  onRequireAuth?: () => void;
+  userId?: string;
 }
 
 // Pricing: 8€ = 6 pokeballs + 2€ crowdfund
@@ -27,6 +30,9 @@ export function ContributeButton({
   boxId,
   onContribute,
   disabled = false,
+  isLoggedIn = false,
+  onRequireAuth,
+  userId,
 }: ContributeButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +46,12 @@ export function ContributeButton({
   const customEurosRounded = Math.ceil(customEuros);
 
   const handleContribute = async (euros: number, pokeballs: number) => {
+    // Check if user is logged in
+    if (!isLoggedIn) {
+      onRequireAuth?.();
+      return;
+    }
+
     setIsLoading(true);
     setSelectedAmount(euros);
 
@@ -49,6 +61,7 @@ export function ContributeButton({
         amount: euros,
         pokeballs,
         boxId,
+        userId,
       });
     } catch (error) {
       console.error('Checkout error:', error);

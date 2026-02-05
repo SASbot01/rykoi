@@ -26,6 +26,9 @@ interface BoxCardProps {
   onContribute: (amount: number) => Promise<void>;
   userCoins?: number;
   isTrending?: boolean;
+  isLoggedIn?: boolean;
+  onRequireAuth?: () => void;
+  userId?: string;
 }
 
 export function BoxCard({
@@ -41,6 +44,9 @@ export function BoxCard({
   recentContributors = [],
   onContribute,
   isTrending = false,
+  isLoggedIn = false,
+  onRequireAuth,
+  userId,
 }: BoxCardProps) {
   const [latestContributor, setLatestContributor] = useState<Contributor | null>(null);
   const [showNotification, setShowNotification] = useState(false);
@@ -230,6 +236,9 @@ export function BoxCard({
           <ContributeButton
             boxId={id}
             onContribute={onContribute}
+            isLoggedIn={isLoggedIn}
+            onRequireAuth={onRequireAuth}
+            userId={userId}
           />
         )}
 
