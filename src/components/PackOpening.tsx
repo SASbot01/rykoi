@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Sparkles, X, Instagram, Calendar, Clock, CheckCircle, ExternalLink } from 'lucide-react';
+import { PokeballIcon } from './PokeballIcon';
 
 interface PackOpeningProps {
   isOpen: boolean;
@@ -23,8 +24,13 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
   };
 
   const handleClose = () => {
+    if (phase === 'success') {
+      // Only deduct coins when successfully purchased
+      onClose();
+    } else {
+      onClose();
+    }
     setPhase('confirm');
-    onClose();
   };
 
   // Calculate next Friday at 20:00
@@ -62,12 +68,8 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
         >
           {/* Background Effects */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="
-              absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-              w-[600px] h-[600px]
-              rounded-full
-              blur-3xl
-            "
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-3xl"
               style={{
                 background: 'radial-gradient(circle, rgba(255, 0, 0, 0.15) 0%, transparent 70%)',
               }}
@@ -134,7 +136,7 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                     />
                   ) : (
                     <div className="w-40 h-56 bg-ryoiki-red/20 rounded-2xl border border-ryoiki-red/50 flex items-center justify-center">
-                      <span className="text-3xl font-display font-bold text-ryoiki-red">${packTier}</span>
+                      <PokeballIcon size={40} />
                     </div>
                   )}
                 </motion.div>
@@ -143,8 +145,10 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                   {packName || 'Pack'}
                 </h2>
 
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-ryoiki-red/20 rounded-full mb-6">
-                  <span className="text-2xl font-display font-bold text-ryoiki-red">${packTier}</span>
+                {/* Price in Pokeballs */}
+                <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-ryoiki-red/20 rounded-full mb-6">
+                  <PokeballIcon size={22} />
+                  <span className="text-2xl font-display font-bold text-ryoiki-red">{packTier}</span>
                 </div>
 
                 {/* Stream Info */}
@@ -192,6 +196,10 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                   >
                     <Sparkles className="w-5 h-5" />
                     Comprar Sobre
+                    <div className="flex items-center gap-1 ml-2 px-2 py-0.5 bg-white/20 rounded-full">
+                      <PokeballIcon size={14} />
+                      <span className="text-sm">{packTier}</span>
+                    </div>
                   </motion.button>
 
                   <button

@@ -40,7 +40,6 @@ export function BoxCard({
   scheduledBreak,
   recentContributors = [],
   onContribute,
-  userCoins = 0,
   isTrending = false,
 }: BoxCardProps) {
   const [latestContributor, setLatestContributor] = useState<Contributor | null>(null);
@@ -59,10 +58,10 @@ export function BoxCard({
 
   const getStatusBadge = () => {
     const badges = {
-      FUNDING: { color: 'bg-ryoiki-red', text: 'Funding', pulse: true },
-      READY: { color: 'bg-emerald-500', text: 'Ready', pulse: true },
-      BREAKING: { color: 'bg-ryoiki-red', text: 'Live', pulse: true },
-      COMPLETED: { color: 'bg-ryoiki-white/20', text: 'Completed', pulse: false },
+      FUNDING: { color: 'bg-ryoiki-red', text: 'Activa', pulse: true },
+      READY: { color: 'bg-emerald-500', text: 'Lista', pulse: true },
+      BREAKING: { color: 'bg-ryoiki-red', text: 'En Directo', pulse: true },
+      COMPLETED: { color: 'bg-ryoiki-white/20', text: 'Completada', pulse: false },
     };
     return badges[status];
   };
@@ -186,7 +185,7 @@ export function BoxCard({
         <div className="flex items-center gap-4 text-sm">
           <span className="flex items-center gap-1.5 text-ryoiki-white/50 font-body">
             <Users className="w-4 h-4 text-ryoiki-red/70" />
-            {contributorsCount} breakers
+            {contributorsCount} supporters
           </span>
 
           {scheduledBreak && status === 'FUNDING' && (
@@ -217,9 +216,9 @@ export function BoxCard({
                 <span className="text-ryoiki-red font-semibold">
                   @{latestContributor.username}
                 </span>
-                {' '}added{' '}
+                {' '}aportó{' '}
                 <span className="text-ryoiki-white font-semibold">
-                  €{latestContributor.amount}
+                  {latestContributor.amount}€
                 </span>
               </span>
             </motion.div>
@@ -231,7 +230,6 @@ export function BoxCard({
           <ContributeButton
             boxId={id}
             onContribute={onContribute}
-            userCoins={userCoins}
           />
         )}
 
@@ -250,14 +248,16 @@ export function BoxCard({
             animate={{ scale: [1, 1.01, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            Domain Ready
+            ¡Lista para abrir!
           </motion.div>
         )}
 
         {/* Live State */}
         {status === 'BREAKING' && (
           <motion.a
-            href="#"
+            href="https://instagram.com/s4sf__"
+            target="_blank"
+            rel="noopener noreferrer"
             className="
               block py-4 px-6
               bg-ryoiki-red
@@ -276,7 +276,7 @@ export function BoxCard({
             transition={{ duration: 1.5, repeat: Infinity }}
             whileHover={{ scale: 1.02 }}
           >
-            Watch Live
+            Ver en Directo
           </motion.a>
         )}
       </div>
@@ -288,7 +288,7 @@ function formatTimeRemaining(date: Date): string {
   const now = new Date();
   const diff = date.getTime() - now.getTime();
 
-  if (diff <= 0) return 'Starting soon';
+  if (diff <= 0) return 'Pronto';
 
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));

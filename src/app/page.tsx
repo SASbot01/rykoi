@@ -2,24 +2,25 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Zap, Users, Package, TrendingUp, ChevronRight, Sparkles, Play, Instagram, ShieldCheck } from 'lucide-react';
+import { Zap, Users, Package, TrendingUp, ChevronRight, Sparkles, Play, Instagram, ShieldCheck, Gift, Coins } from 'lucide-react';
 import { BoxCard } from '@/components/BoxCard';
 import { PackOpening } from '@/components/PackOpening';
 import { AuthModal, type UserData } from '@/components/AuthModal';
-import { PACKS, type PackData } from '@/lib/packs-data';
+import { PokeballIcon } from '@/components/PokeballIcon';
+import { PACKS, COIN_SYSTEM, type PackData } from '@/lib/packs-data';
 
-// Mock Data for boxes
-const MOCK_BOXES = [
+// Crowdfunding boxes data
+const BOXES = [
   {
     id: '1',
     name: 'Prismatic Evolutions',
     description: 'Booster Box — 36 Packs',
     imageUrl: '/packs/prismatic-evolutions.png',
     targetPrice: 400,
-    currentRaised: 312,
-    contributorsCount: 23,
+    currentRaised: 0,
+    contributorsCount: 0,
     status: 'FUNDING' as const,
-    scheduledBreak: new Date(Date.now() + 86400000 * 2),
+    scheduledBreak: new Date(Date.now() + 86400000 * 7),
     isTrending: true,
   },
   {
@@ -27,28 +28,29 @@ const MOCK_BOXES = [
     name: 'Rising Heroes',
     description: 'Elite Trainer Box',
     imageUrl: '/packs/heroes-ascendentes.png',
-    targetPrice: 85,
-    currentRaised: 85,
-    contributorsCount: 12,
-    status: 'READY' as const,
+    targetPrice: 120,
+    currentRaised: 0,
+    contributorsCount: 0,
+    status: 'FUNDING' as const,
+    scheduledBreak: new Date(Date.now() + 86400000 * 14),
   },
   {
     id: '3',
     name: 'Obsidian Flames',
     description: 'Booster Box — 36 Packs',
     imageUrl: '/packs/black-flame.png',
-    targetPrice: 150,
-    currentRaised: 67,
-    contributorsCount: 8,
+    targetPrice: 180,
+    currentRaised: 0,
+    contributorsCount: 0,
     status: 'FUNDING' as const,
-    scheduledBreak: new Date(Date.now() + 86400000 * 5),
+    scheduledBreak: new Date(Date.now() + 86400000 * 10),
   },
 ];
 
 const STATS = [
   { label: 'Breakers', value: '0', icon: Users },
-  { label: 'Packs Disponibles', value: '6', icon: Package },
-  { label: 'Total Abierto', value: '$0', icon: TrendingUp },
+  { label: 'Sobres Disponibles', value: '6', icon: Package },
+  { label: 'Total Abierto', value: '0', icon: TrendingUp },
 ];
 
 export default function HomePage() {
@@ -56,10 +58,24 @@ export default function HomePage() {
   const [selectedPack, setSelectedPack] = useState<PackData | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
+  const [userCoins, setUserCoins] = useState(0);
 
   const handleContribute = async (amount: number) => {
+    if (!user) {
+      setIsAuthOpen(true);
+      return;
+    }
+
+    // Calculate coins to give (for every 8€, user gets 6 coins)
+    const contributions = Math.floor(amount / COIN_SYSTEM.CONTRIBUTION_AMOUNT);
+    const coinsToAdd = contributions * COIN_SYSTEM.COINS_RECEIVED;
+
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log(`Contributed ${amount} coins`);
+
+    // Add coins to user balance
+    setUserCoins(prev => prev + coinsToAdd);
+
+    console.log(`Contributed ${amount}€ - Added ${coinsToAdd} coins`);
   };
 
   const handleBuyPack = (pack: PackData) => {
@@ -67,8 +83,19 @@ export default function HomePage() {
       setIsAuthOpen(true);
       return;
     }
+    if (userCoins < pack.price) {
+      // Scroll to boxes section to get more coins
+      document.getElementById('boxes-section')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
     setSelectedPack(pack);
     setIsPackOpen(true);
+  };
+
+  const handlePackPurchase = () => {
+    if (selectedPack) {
+      setUserCoins(prev => prev - selectedPack.price);
+    }
   };
 
   const handleAuthSuccess = (userData: UserData) => {
@@ -77,6 +104,10 @@ export default function HomePage() {
 
   const scrollToPacks = () => {
     document.getElementById('packs-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const scrollToBoxes = () => {
+    document.getElementById('boxes-section')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -121,6 +152,13 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-3">
+                {/* Coin Balance */}
+                <div className="flex items-center gap-2 px-4 py-2.5 glass-red rounded-full">
+                  <PokeballIcon size={20} />
+                  <span className="font-display font-bold text-ryoiki-white">{userCoins}</span>
+                </div>
+
+                {/* User */}
                 <div className="hidden md:flex items-center gap-2 px-4 py-2.5 glass rounded-full">
                   <div className="w-8 h-8 bg-ryoiki-red/20 rounded-full flex items-center justify-center">
                     <span className="text-ryoiki-red font-display font-bold text-sm">
@@ -130,7 +168,10 @@ export default function HomePage() {
                   <span className="font-medium text-ryoiki-white">{user.name}</span>
                 </div>
                 <button
-                  onClick={() => setUser(null)}
+                  onClick={() => {
+                    setUser(null);
+                    setUserCoins(0);
+                  }}
                   className="text-sm text-ryoiki-white/50 hover:text-ryoiki-red transition-colors"
                 >
                   Salir
@@ -149,7 +190,7 @@ export default function HomePage() {
       </nav>
 
       {/* ===== HERO SECTION ===== */}
-      <section className="relative pt-40 pb-24 px-6 overflow-hidden z-10">
+      <section className="relative pt-40 pb-20 px-6 overflow-hidden z-10">
         {/* Abstract Art Background Elements */}
         <div className="absolute top-20 left-10 w-72 h-72 bg-ryoiki-red/5 blob blur-3xl" />
         <div className="absolute bottom-0 right-20 w-96 h-96 bg-ryoiki-red/10 rounded-full blur-3xl" />
@@ -159,16 +200,6 @@ export default function HomePage() {
           className="absolute top-32 right-[20%] w-4 h-4 bg-ryoiki-red/30 rounded-full"
           animate={{ y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
           transition={{ duration: 4, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute top-48 left-[15%] w-6 h-6 border border-ryoiki-red/20 rounded-lg rotate-45"
-          animate={{ rotate: [45, 90, 45], scale: [1, 1.1, 1] }}
-          transition={{ duration: 6, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute bottom-32 left-[25%] w-3 h-3 bg-ryoiki-red/40 rounded-full"
-          animate={{ y: [0, 15, 0] }}
-          transition={{ duration: 3, repeat: Infinity }}
         />
 
         <div className="relative max-w-5xl mx-auto text-center">
@@ -182,7 +213,7 @@ export default function HomePage() {
             <span className="text-sm font-medium text-ryoiki-white/80">Directos en @s4sf__</span>
           </motion.div>
 
-          {/* Main Title - Modern Art Style */}
+          {/* Main Title */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -203,67 +234,66 @@ export default function HomePage() {
             領域展開
           </motion.p>
 
-          {/* Description - How it works */}
-          <motion.div
+          {/* Description */}
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="max-w-2xl mx-auto mb-12"
+            className="text-xl md:text-2xl text-ryoiki-white/60 font-body font-light leading-relaxed mb-8 max-w-2xl mx-auto"
           >
-            <p className="text-xl md:text-2xl text-ryoiki-white/60 font-body font-light leading-relaxed mb-6">
-              Compra sobres de Pokémon y los abrimos{' '}
-              <span className="text-ryoiki-white font-medium">en directo</span> en Instagram.
-            </p>
+            Abre sobres de Pokémon en{' '}
+            <span className="text-ryoiki-white font-medium">directo</span> cada viernes.
+          </motion.p>
 
-            {/* How it works steps */}
-            <div className="grid md:grid-cols-3 gap-4 text-left">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="glass p-4 rounded-2xl"
-              >
-                <div className="w-8 h-8 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
-                  <span className="text-ryoiki-red font-display font-bold">1</span>
-                </div>
-                <h3 className="font-display font-bold text-ryoiki-white mb-1">Elige tu sobre</h3>
-                <p className="text-sm text-ryoiki-white/50">Selecciona entre nuestros packs disponibles</p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="glass p-4 rounded-2xl"
-              >
-                <div className="w-8 h-8 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
-                  <Play className="w-4 h-4 text-ryoiki-red" />
-                </div>
-                <h3 className="font-display font-bold text-ryoiki-white mb-1">Directo en Instagram</h3>
-                <p className="text-sm text-ryoiki-white/50">Cada viernes a las 20:00h abrimos tus sobres</p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="glass p-4 rounded-2xl"
-              >
-                <div className="w-8 h-8 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
-                  <ShieldCheck className="w-4 h-4 text-ryoiki-red" />
-                </div>
-                <h3 className="font-display font-bold text-ryoiki-white mb-1">Recibe tus cartas</h3>
-                <p className="text-sm text-ryoiki-white/50">Te enviamos lo que salga o véndelo en tu perfil</p>
-              </motion.div>
-            </div>
-          </motion.div>
-
-          {/* Stats - Modern Cards */}
+          {/* How it works - Coin System */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="flex justify-center gap-4 md:gap-6 mb-14"
+            transition={{ delay: 0.4 }}
+            className="max-w-3xl mx-auto mb-10"
+          >
+            <div className="grid md:grid-cols-3 gap-4 text-left">
+              <div className="glass p-5 rounded-2xl">
+                <div className="w-10 h-10 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
+                  <Gift className="w-5 h-5 text-ryoiki-red" />
+                </div>
+                <h3 className="font-display font-bold text-ryoiki-white mb-2">1. Apoya las Cajas</h3>
+                <p className="text-sm text-ryoiki-white/50">
+                  Por cada <span className="text-ryoiki-white font-semibold">8€</span> que aportes al crowdfunding,
+                  recibes <span className="text-ryoiki-red font-semibold">6 pokeballs</span> y 2€ van a la caja.
+                </p>
+              </div>
+
+              <div className="glass p-5 rounded-2xl">
+                <div className="w-10 h-10 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
+                  <PokeballIcon size={20} />
+                </div>
+                <h3 className="font-display font-bold text-ryoiki-white mb-2">2. Compra Sobres</h3>
+                <p className="text-sm text-ryoiki-white/50">
+                  Usa tus pokeballs para comprar sobres.
+                  <span className="text-ryoiki-white/70"> Los abriremos en directo</span> y las cartas son tuyas.
+                </p>
+              </div>
+
+              <div className="glass p-5 rounded-2xl">
+                <div className="w-10 h-10 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
+                  <Play className="w-5 h-5 text-ryoiki-red" />
+                </div>
+                <h3 className="font-display font-bold text-ryoiki-white mb-2">3. Cajas para el Canal</h3>
+                <p className="text-sm text-ryoiki-white/50">
+                  Cuando una caja llega al 100%, <span className="text-ryoiki-white/70">la abro en directo</span> para
+                  crear contenido. ¡Gracias por apoyar!
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="flex justify-center gap-4 md:gap-6 mb-10"
           >
             {STATS.map((stat, index) => (
               <motion.div
@@ -271,7 +301,7 @@ export default function HomePage() {
                 className="glass px-6 py-4 rounded-3xl min-w-[120px]"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.8 + index * 0.1 }}
+                transition={{ delay: 0.6 + index * 0.1 }}
                 whileHover={{ scale: 1.02, y: -2 }}
               >
                 <div className="flex items-center justify-center gap-2 mb-1">
@@ -287,15 +317,16 @@ export default function HomePage() {
             ))}
           </motion.div>
 
-          {/* CTA Button */}
+          {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
+            transition={{ delay: 0.7 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <motion.button
               onClick={scrollToPacks}
-              className="btn-primary flex items-center justify-center gap-2 group text-base mx-auto"
+              className="btn-primary flex items-center justify-center gap-2 group text-base"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -303,12 +334,84 @@ export default function HomePage() {
               Abrir Sobres
               <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
+            <motion.button
+              onClick={scrollToBoxes}
+              className="btn-secondary flex items-center justify-center gap-2 text-base"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Gift className="w-5 h-5" />
+              Conseguir Pokeballs
+            </motion.button>
           </motion.div>
         </div>
       </section>
 
+      {/* ===== CROWDFUNDING BOXES SECTION ===== */}
+      <section id="boxes-section" className="relative py-20 px-6 z-10">
+        <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-10">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2 px-4 py-2 glass-red rounded-full mb-6"
+            >
+              <Gift className="w-4 h-4 text-ryoiki-red" />
+              <span className="text-sm font-medium text-ryoiki-white/60">Crowdfunding</span>
+            </motion.div>
+
+            <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-4">
+              Apoya las <span className="gradient-text">Cajas</span>
+            </h2>
+            <p className="text-ryoiki-white/50 max-w-2xl mx-auto font-body text-lg mb-4">
+              Contribuye al crowdfunding y consigue pokeballs para abrir tus sobres.
+            </p>
+
+            {/* Coin explanation */}
+            <div className="inline-flex items-center gap-3 px-5 py-3 glass rounded-2xl">
+              <div className="flex items-center gap-2">
+                <span className="text-ryoiki-white/60">Por cada</span>
+                <span className="font-display font-bold text-ryoiki-white">8€</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-ryoiki-white/30" />
+              <div className="flex items-center gap-2">
+                <PokeballIcon size={18} />
+                <span className="font-display font-bold text-ryoiki-red">6</span>
+                <span className="text-ryoiki-white/60">para ti</span>
+              </div>
+              <span className="text-ryoiki-white/30">+</span>
+              <div className="flex items-center gap-2">
+                <span className="font-display font-bold text-green-400">2€</span>
+                <span className="text-ryoiki-white/60">a la caja</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Box Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {BOXES.map((box, index) => (
+              <motion.div
+                key={box.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <BoxCard
+                  {...box}
+                  onContribute={handleContribute}
+                  userCoins={userCoins}
+                />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ===== PACKS SECTION ===== */}
-      <section id="packs-section" className="relative py-24 px-6 z-10">
+      <section id="packs-section" className="relative py-20 px-6 z-10">
         {/* Abstract background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-ryoiki-red/5 rounded-full blur-3xl" />
@@ -330,75 +433,104 @@ export default function HomePage() {
               Elige tu <span className="gradient-text">Sobre</span>
             </h2>
             <p className="text-ryoiki-white/50 max-w-xl mx-auto font-body text-lg">
-              Compra un sobre y lo abriremos en directo el próximo viernes.
+              Usa tus pokeballs para comprar sobres.
               <br />
-              <span className="text-ryoiki-white/70">¡Todas las cartas son tuyas!</span>
+              <span className="text-ryoiki-white/70">¡Los abrimos en directo el viernes!</span>
             </p>
+
+            {/* User balance reminder */}
+            {user && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 glass-red rounded-full"
+              >
+                <span className="text-ryoiki-white/60 text-sm">Tu saldo:</span>
+                <PokeballIcon size={18} />
+                <span className="font-display font-bold text-ryoiki-white">{userCoins}</span>
+                {userCoins === 0 && (
+                  <button
+                    onClick={scrollToBoxes}
+                    className="text-xs text-ryoiki-red hover:underline ml-2"
+                  >
+                    Conseguir más
+                  </button>
+                )}
+              </motion.div>
+            )}
           </div>
 
           {/* Packs Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {PACKS.map((pack, index) => (
-              <motion.button
-                key={pack.id}
-                onClick={() => handleBuyPack(pack)}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-                className="
-                  relative
-                  glass
-                  rounded-3xl
-                  p-4
-                  flex flex-col items-center
-                  transition-all duration-300
-                  overflow-hidden
-                  hover:shadow-glow cursor-pointer group
-                "
-                whileHover={{ scale: 1.03, y: -5 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                {/* Featured badge */}
-                {pack.featured && (
-                  <div className="absolute top-2 right-2 px-2 py-0.5 bg-ryoiki-red rounded-full text-[10px] font-bold">
-                    HOT
+            {PACKS.map((pack, index) => {
+              const canAfford = userCoins >= pack.price;
+
+              return (
+                <motion.button
+                  key={pack.id}
+                  onClick={() => handleBuyPack(pack)}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                  className={`
+                    relative
+                    glass
+                    rounded-3xl
+                    p-4
+                    flex flex-col items-center
+                    transition-all duration-300
+                    overflow-hidden
+                    ${canAfford || !user
+                      ? 'hover:shadow-glow cursor-pointer group'
+                      : 'opacity-50 cursor-not-allowed'
+                    }
+                  `}
+                  whileHover={canAfford || !user ? { scale: 1.03, y: -5 } : {}}
+                  whileTap={canAfford || !user ? { scale: 0.97 } : {}}
+                >
+                  {/* Featured badge */}
+                  {pack.featured && (
+                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-ryoiki-red rounded-full text-[10px] font-bold">
+                      HOT
+                    </div>
+                  )}
+
+                  {/* Background glow on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-ryoiki-red/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
+
+                  {/* Pack Image */}
+                  <div className="relative w-full aspect-[2/3] mb-3">
+                    <img
+                      src={pack.image}
+                      alt={pack.name}
+                      className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,0,0,0.3)] group-hover:drop-shadow-[0_0_25px_rgba(255,0,0,0.5)] transition-all duration-300"
+                    />
                   </div>
-                )}
 
-                {/* Background glow on hover */}
-                <div className="absolute inset-0 bg-gradient-to-b from-ryoiki-red/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
+                  {/* Pack Info */}
+                  <div className="relative text-center w-full">
+                    <h3 className="font-display font-bold text-sm text-ryoiki-white truncate">
+                      {pack.name}
+                    </h3>
+                    <p className="text-[10px] text-ryoiki-white/40 mb-2 truncate">
+                      {pack.set}
+                    </p>
 
-                {/* Pack Image */}
-                <div className="relative w-full aspect-[2/3] mb-3">
-                  <img
-                    src={pack.image}
-                    alt={pack.name}
-                    className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,0,0,0.3)] group-hover:drop-shadow-[0_0_25px_rgba(255,0,0,0.5)] transition-all duration-300"
-                  />
-                </div>
-
-                {/* Pack Info */}
-                <div className="relative text-center w-full">
-                  <h3 className="font-display font-bold text-sm text-ryoiki-white truncate">
-                    {pack.name}
-                  </h3>
-                  <p className="text-[10px] text-ryoiki-white/40 mb-2 truncate">
-                    {pack.set}
-                  </p>
-
-                  {/* Price */}
-                  <div className="flex items-center justify-center gap-1 py-2 px-3 bg-ryoiki-red/20 rounded-xl group-hover:bg-ryoiki-red/30 transition-colors">
-                    <span className="text-lg font-display font-bold text-ryoiki-red">
-                      ${pack.price}
-                    </span>
+                    {/* Price in Pokeballs */}
+                    <div className="flex items-center justify-center gap-1.5 py-2 px-3 bg-ryoiki-red/20 rounded-xl group-hover:bg-ryoiki-red/30 transition-colors">
+                      <PokeballIcon size={16} />
+                      <span className="text-lg font-display font-bold text-ryoiki-red">
+                        {pack.price}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Bottom accent */}
-                <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-ryoiki-red/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              </motion.button>
-            ))}
+                  {/* Bottom accent */}
+                  <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-ryoiki-red/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.button>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -472,8 +604,11 @@ export default function HomePage() {
       {/* Pack Opening Modal */}
       <PackOpening
         isOpen={isPackOpen}
-        onClose={() => setIsPackOpen(false)}
-        packTier={selectedPack?.price || 6}
+        onClose={() => {
+          setIsPackOpen(false);
+          handlePackPurchase();
+        }}
+        packTier={selectedPack?.price || 7}
         packImage={selectedPack?.image}
         packName={selectedPack?.name}
       />

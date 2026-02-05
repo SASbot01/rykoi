@@ -2,38 +2,39 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Zap, Loader2 } from 'lucide-react';
+import { Gift, Loader2, ChevronRight } from 'lucide-react';
+import { PokeballIcon } from './PokeballIcon';
+import { COIN_SYSTEM } from '@/lib/packs-data';
 
 interface ContributeButtonProps {
   boxId: string;
   onContribute: (amount: number) => Promise<void>;
   disabled?: boolean;
-  userCoins?: number;
 }
 
-const QUICK_AMOUNTS = [5, 10, 25, 50];
+const CONTRIBUTION_OPTIONS = [
+  { euros: 8, coins: 6, crowdfund: 2 },
+  { euros: 16, coins: 12, crowdfund: 4 },
+  { euros: 24, coins: 18, crowdfund: 6 },
+  { euros: 40, coins: 30, crowdfund: 10 },
+];
 
 export function ContributeButton({
   boxId,
   onContribute,
   disabled = false,
-  userCoins = 0
 }: ContributeButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [customAmount, setCustomAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
 
-  const handleContribute = async (amount: number) => {
-    if (amount > userCoins) return;
-
+  const handleContribute = async (euros: number) => {
     setIsLoading(true);
-    setSelectedAmount(amount);
+    setSelectedAmount(euros);
 
     try {
-      await onContribute(amount);
+      await onContribute(euros);
       setIsOpen(false);
-      setCustomAmount('');
     } finally {
       setIsLoading(false);
       setSelectedAmount(null);
@@ -64,17 +65,9 @@ export function ContributeButton({
 
         {/* Button Content */}
         <span className="relative flex items-center justify-center gap-2">
-          <Zap className="w-5 h-5" />
-          Contribute
+          <Gift className="w-5 h-5" />
+          Apoyar y Conseguir Pokeballs
         </span>
-
-        {/* Glow effect */}
-        <div
-          className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-          style={{
-            boxShadow: '0 10px 40px -10px rgba(255, 0, 0, 0.5)',
-          }}
-        />
       </motion.button>
 
       {/* Dropdown Panel */}
@@ -86,84 +79,76 @@ export function ContributeButton({
         }}
         className="overflow-hidden"
       >
-        <div className="pt-4 space-y-4">
-          {/* Quick Amounts */}
-          <div className="grid grid-cols-4 gap-2">
-            {QUICK_AMOUNTS.map((amount) => (
-              <motion.button
-                key={amount}
-                onClick={() => handleContribute(amount)}
-                disabled={isLoading || amount > userCoins}
-                className={`
-                  py-3 px-2
-                  glass
-                  rounded-xl
-                  font-display font-semibold
-                  transition-all duration-200
-                  ${amount > userCoins
-                    ? 'opacity-30 cursor-not-allowed'
-                    : 'hover:bg-ryoiki-red/10 hover:border-ryoiki-red/30'
-                  }
-                  ${selectedAmount === amount ? 'bg-ryoiki-red/20 border-ryoiki-red/50' : ''}
-                `}
-                whileHover={amount <= userCoins ? { scale: 1.03 } : {}}
-                whileTap={amount <= userCoins ? { scale: 0.97 } : {}}
-              >
-                {isLoading && selectedAmount === amount ? (
-                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                ) : (
-                  `${amount}€`
-                )}
-              </motion.button>
-            ))}
-          </div>
+        <div className="pt-4 space-y-3">
+          {/* Explanation */}
+          <p className="text-xs text-ryoiki-white/50 text-center mb-2">
+            Elige cuánto quieres aportar
+          </p>
 
-          {/* Custom Amount */}
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <input
-                type="number"
-                value={customAmount}
-                onChange={(e) => setCustomAmount(e.target.value)}
-                placeholder="Custom"
-                className="input-modern w-full"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-ryoiki-white/30 font-body">
-                €
-              </span>
-            </div>
+          {/* Contribution Options */}
+          {CONTRIBUTION_OPTIONS.map((option) => (
             <motion.button
-              onClick={() => customAmount && handleContribute(Number(customAmount))}
-              disabled={
-                isLoading ||
-                !customAmount ||
-                Number(customAmount) <= 0 ||
-                Number(customAmount) > userCoins
-              }
-              className="
-                py-3 px-6
-                bg-ryoiki-red
-                rounded-xl
-                font-display font-semibold
-                disabled:opacity-30 disabled:cursor-not-allowed
-                hover:shadow-glow
-                transition-all
-              "
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+              key={option.euros}
+              onClick={() => handleContribute(option.euros)}
+              disabled={isLoading}
+              className={`
+                w-full py-4 px-4
+                glass
+                rounded-2xl
+                transition-all duration-200
+                hover:bg-ryoiki-red/10 hover:border-ryoiki-red/30
+                disabled:opacity-50
+                ${selectedAmount === option.euros ? 'bg-ryoiki-red/20 border-ryoiki-red/50' : ''}
+              `}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
             >
-              {isLoading && selectedAmount === Number(customAmount) ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+              {isLoading && selectedAmount === option.euros ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                </div>
               ) : (
-                'Go'
+                <div className="flex items-center justify-between">
+                  {/* Left: Euros */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-display font-bold text-ryoiki-white">
+                      {option.euros}€
+                    </span>
+                  </div>
+
+                  {/* Arrow */}
+                  <ChevronRight className="w-4 h-4 text-ryoiki-white/30" />
+
+                  {/* Right: What you get */}
+                  <div className="flex items-center gap-4">
+                    {/* Pokeballs */}
+                    <div className="flex items-center gap-1.5">
+                      <PokeballIcon size={18} />
+                      <span className="font-display font-bold text-ryoiki-red">
+                        {option.coins}
+                      </span>
+                    </div>
+
+                    {/* Separator */}
+                    <span className="text-ryoiki-white/20">+</span>
+
+                    {/* Crowdfund */}
+                    <div className="flex items-center gap-1">
+                      <span className="font-display font-bold text-green-400">
+                        {option.crowdfund}€
+                      </span>
+                      <span className="text-[10px] text-ryoiki-white/40">caja</span>
+                    </div>
+                  </div>
+                </div>
               )}
             </motion.button>
-          </div>
+          ))}
 
-          {/* Balance Indicator */}
-          <div className="text-center text-sm text-ryoiki-white/40 font-body">
-            Balance: <span className="text-ryoiki-red font-semibold">{userCoins}€</span>
-          </div>
+          {/* Info text */}
+          <p className="text-[10px] text-ryoiki-white/30 text-center">
+            El pago se procesa con Stripe de forma segura
+          </p>
         </div>
       </motion.div>
     </div>
