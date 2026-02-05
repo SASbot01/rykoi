@@ -1,11 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Zap, Users, Package, TrendingUp, ChevronRight, Sparkles, Play, Instagram, ShieldCheck, Gift, Coins } from 'lucide-react';
 import { BoxCard } from '@/components/BoxCard';
 import { PackOpening } from '@/components/PackOpening';
 import { AuthModal } from '@/components/AuthModal';
+import { supabase } from '@/lib/supabase';
 
 interface User {
   id: string;
@@ -65,6 +66,81 @@ export default function HomePage() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [userCoins, setUserCoins] = useState(0);
+
+  // Check for existing session and listen for auth changes
+  useEffect(() => {
+    // Check current session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        // Fetch user profile from database
+        const { data: profile } = await supabase
+          .from('users')
+          .select('id, email, username, pokeballs')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          setUser({
+            id: profile.id,
+            email: profile.email || session.user.email || '',
+            username: profile.username,
+          });
+          setUserCoins(profile.pokeballs || 0);
+        }
+      }
+    };
+
+    checkSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('id, email, username, pokeballs')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          setUser({
+            id: profile.id,
+            email: profile.email || session.user.email || '',
+            username: profile.username,
+          });
+          setUserCoins(profile.pokeballs || 0);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setUserCoins(0);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Refresh pokeballs from database
+  const refreshUserData = async () => {
+    if (!user) return;
+    const { data: profile } = await supabase
+      .from('users')
+      .select('pokeballs')
+      .eq('id', user.id)
+      .single();
+    if (profile) {
+      setUserCoins(profile.pokeballs || 0);
+    }
+  };
+
+  // Check for success redirect and refresh data
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true' || urlParams.get('from') === 'payment') {
+      refreshUserData();
+      // Clean URL
+      window.history.replaceState({}, '', '/');
+    }
+  }, [user]);
 
   const handleContribute = async (amount: number) => {
     if (!user) {

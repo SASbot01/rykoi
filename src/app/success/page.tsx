@@ -178,7 +178,7 @@ function SuccessContent() {
 
             {/* Back to Home Button */}
             <Link
-              href="/"
+              href="/?from=payment"
               className="
                 w-full py-4 px-6
                 glass hover:bg-ryoiki-white/10
