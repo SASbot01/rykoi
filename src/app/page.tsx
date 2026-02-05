@@ -16,43 +16,19 @@ interface User {
 import { PokeballIcon } from '@/components/PokeballIcon';
 import { PACKS, COIN_SYSTEM, type PackData } from '@/lib/packs-data';
 
-// Crowdfunding boxes data
-const BOXES = [
-  {
-    id: '1',
-    name: 'Prismatic Evolutions',
-    description: 'Booster Box — 36 sobres',
-    imageUrl: '/packs/prismatic-evolutions.png',
-    targetPrice: 280,
-    currentRaised: 0,
-    contributorsCount: 0,
-    status: 'FUNDING' as const,
-    scheduledBreak: new Date(Date.now() + 86400000 * 7),
-    isTrending: true,
-  },
-  {
-    id: '2',
-    name: 'Rising Heroes',
-    description: 'Booster Box — 36 sobres',
-    imageUrl: '/packs/heroes-ascendentes.png',
-    targetPrice: 150,
-    currentRaised: 0,
-    contributorsCount: 0,
-    status: 'FUNDING' as const,
-    scheduledBreak: new Date(Date.now() + 86400000 * 14),
-  },
-  {
-    id: '3',
-    name: 'White Flare',
-    description: 'Booster Box Japonés — 20 Packs',
-    imageUrl: '/packs/white-flame.png',
-    targetPrice: 120,
-    currentRaised: 0,
-    contributorsCount: 0,
-    status: 'FUNDING' as const,
-    scheduledBreak: new Date(Date.now() + 86400000 * 10),
-  },
-];
+// Box type for database
+interface Box {
+  id: string;
+  name: string;
+  description: string | null;
+  image_url: string;
+  target_price: number;
+  current_raised: number;
+  contributors_count: number;
+  status: 'FUNDING' | 'READY' | 'BREAKING' | 'COMPLETED';
+  scheduled_break: string | null;
+  is_trending: boolean;
+}
 
 const STATS = [
   { label: 'Breakers', value: '0', icon: Users },
@@ -66,6 +42,36 @@ export default function HomePage() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [userCoins, setUserCoins] = useState(0);
+  const [boxes, setBoxes] = useState<Box[]>([]);
+
+  // Fetch boxes from database
+  useEffect(() => {
+    const fetchBoxes = async () => {
+      const { data, error } = await supabase
+        .from('boxes')
+        .select('*')
+        .in('status', ['FUNDING', 'READY', 'BREAKING'])
+        .order('is_trending', { ascending: false });
+
+      if (data && !error) {
+        setBoxes(data);
+      }
+    };
+
+    fetchBoxes();
+
+    // Subscribe to box updates
+    const channel = supabase
+      .channel('boxes-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'boxes' }, () => {
+        fetchBoxes();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   // Check for existing session and listen for auth changes
   useEffect(() => {
@@ -473,7 +479,7 @@ export default function HomePage() {
 
           {/* Box Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {BOXES.map((box, index) => (
+            {boxes.map((box, index) => (
               <motion.div
                 key={box.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -482,7 +488,16 @@ export default function HomePage() {
                 transition={{ delay: index * 0.1 }}
               >
                 <BoxCard
-                  {...box}
+                  id={box.id}
+                  name={box.name}
+                  description={box.description || ''}
+                  imageUrl={box.image_url}
+                  targetPrice={box.target_price}
+                  currentRaised={box.current_raised}
+                  contributorsCount={box.contributors_count}
+                  status={box.status}
+                  scheduledBreak={box.scheduled_break ? new Date(box.scheduled_break) : undefined}
+                  isTrending={box.is_trending}
                   onContribute={handleContribute}
                   userCoins={userCoins}
                   isLoggedIn={!!user}
