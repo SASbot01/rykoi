@@ -5,6 +5,11 @@ export const metadata: Metadata = {
   title: 'RYŌIKI | 領域展開',
   description: 'Enter the domain. Crowdfund legendary openings. Own your destiny. The next evolution of Pokemon TCG collecting.',
   keywords: ['Pokemon', 'TCG', 'NFT', 'Crowdfunding', 'Trading Cards', 'Collectibles', 'Ryoiki'],
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   openGraph: {
     title: 'RYŌIKI',
     description: 'Enter the domain. Own your destiny.',
