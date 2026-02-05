@@ -81,7 +81,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             id: authData.user.id,
             email: email,
             username: username,
-            name: username,
             pokeballs: 0,
           });
 
