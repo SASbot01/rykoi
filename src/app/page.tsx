@@ -5,7 +5,13 @@ import { useState } from 'react';
 import { Zap, Users, Package, TrendingUp, ChevronRight, Sparkles, Play, Instagram, ShieldCheck, Gift, Coins } from 'lucide-react';
 import { BoxCard } from '@/components/BoxCard';
 import { PackOpening } from '@/components/PackOpening';
-import { AuthModal, type UserData } from '@/components/AuthModal';
+import { AuthModal } from '@/components/AuthModal';
+
+interface User {
+  id: string;
+  email: string;
+  username: string;
+}
 import { PokeballIcon } from '@/components/PokeballIcon';
 import { PACKS, COIN_SYSTEM, type PackData } from '@/lib/packs-data';
 
@@ -57,7 +63,7 @@ export default function HomePage() {
   const [isPackOpen, setIsPackOpen] = useState(false);
   const [selectedPack, setSelectedPack] = useState<PackData | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [user, setUser] = useState<UserData | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [userCoins, setUserCoins] = useState(0);
 
   const handleContribute = async (amount: number) => {
@@ -98,7 +104,7 @@ export default function HomePage() {
     }
   };
 
-  const handleAuthSuccess = (userData: UserData) => {
+  const handleAuthSuccess = (userData: User) => {
     setUser(userData);
   };
 
@@ -162,10 +168,10 @@ export default function HomePage() {
                 <div className="hidden md:flex items-center gap-2 px-4 py-2.5 glass rounded-full">
                   <div className="w-8 h-8 bg-ryoiki-red/20 rounded-full flex items-center justify-center">
                     <span className="text-ryoiki-red font-display font-bold text-sm">
-                      {user.name.charAt(0).toUpperCase()}
+                      {user.username.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <span className="font-medium text-ryoiki-white">{user.name}</span>
+                  <span className="font-medium text-ryoiki-white">{user.username}</span>
                 </div>
                 <button
                   onClick={() => {

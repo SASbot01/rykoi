@@ -2,7 +2,8 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { X, User, Mail, Phone, Info, ShieldCheck } from 'lucide-react';
+import { X, User, Mail, Lock, Info, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -11,16 +12,17 @@ interface AuthModalProps {
 }
 
 export interface UserData {
-  name: string;
-  contact: string;
-  contactType: 'email' | 'phone';
+  id: string;
+  email: string;
+  username: string;
 }
 
 export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [name, setName] = useState('');
-  const [contact, setContact] = useState('');
-  const [contactType, setContactType] = useState<'email' | 'phone'>('email');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,29 +30,113 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     e.preventDefault();
     setError('');
 
-    if (!name.trim()) {
-      setError('Introduce tu nombre');
+    if (!email.trim()) {
+      setError('Introduce tu email');
       return;
     }
 
-    if (!contact.trim()) {
-      setError('Introduce un email o teléfono');
+    if (!password.trim()) {
+      setError('Introduce tu contraseña');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    if (mode === 'register' && !username.trim()) {
+      setError('Introduce tu nombre de usuario');
       return;
     }
 
     setIsLoading(true);
 
-    // Simulate auth
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      if (mode === 'register') {
+        // Register new user
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              username: username,
+            },
+          },
+        });
+
+        if (authError) {
+          if (authError.message.includes('already registered')) {
+            setError('Este email ya está registrado');
+          } else {
+            setError(authError.message);
+          }
+          setIsLoading(false);
+          return;
+        }
+
+        if (authData.user) {
+          // Create user profile in our users table
+          await supabase.from('users').insert({
+            id: authData.user.id,
+            email: email,
+            username: username,
+            name: username,
+            pokeballs: 0,
+          });
+
+          onSuccess({
+            id: authData.user.id,
+            email: email,
+            username: username,
+          });
+          handleClose();
+        }
+      } else {
+        // Login existing user
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (authError) {
+          if (authError.message.includes('Invalid login')) {
+            setError('Email o contraseña incorrectos');
+          } else {
+            setError(authError.message);
+          }
+          setIsLoading(false);
+          return;
+        }
+
+        if (authData.user) {
+          // Get user profile
+          const { data: profile } = await supabase
+            .from('users')
+            .select('username')
+            .eq('id', authData.user.id)
+            .single();
+
+          onSuccess({
+            id: authData.user.id,
+            email: authData.user.email || email,
+            username: profile?.username || email.split('@')[0],
+          });
+          handleClose();
+        }
+      }
+    } catch (err) {
+      console.error('Auth error:', err);
+      setError('Error de conexión. Inténtalo de nuevo.');
+    }
 
     setIsLoading(false);
-    onSuccess({ name, contact, contactType });
-    handleClose();
   };
 
   const handleClose = () => {
-    setName('');
-    setContact('');
+    setUsername('');
+    setEmail('');
+    setPassword('');
     setError('');
     setMode('login');
     onClose();
@@ -110,62 +196,57 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Name */}
+                {/* Username - only for register */}
+                {mode === 'register' && (
+                  <div>
+                    <label className="block text-sm text-ryoiki-white/60 mb-2">Usuario</label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ryoiki-white/30" />
+                      <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Tu nombre de usuario"
+                        className="input-modern w-full pl-12"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Email */}
                 <div>
-                  <label className="block text-sm text-ryoiki-white/60 mb-2">Nombre</label>
+                  <label className="block text-sm text-ryoiki-white/60 mb-2">Email</label>
                   <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ryoiki-white/30" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ryoiki-white/30" />
                     <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Tu nombre"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tu@email.com"
                       className="input-modern w-full pl-12"
                     />
                   </div>
                 </div>
 
-                {/* Contact Type Toggle */}
+                {/* Password */}
                 <div>
-                  <label className="block text-sm text-ryoiki-white/60 mb-2">Contacto</label>
-                  <div className="flex gap-2 mb-3">
-                    <button
-                      type="button"
-                      onClick={() => setContactType('email')}
-                      className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all ${
-                        contactType === 'email'
-                          ? 'bg-ryoiki-red text-white'
-                          : 'glass text-ryoiki-white/60 hover:text-ryoiki-white'
-                      }`}
-                    >
-                      Email
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setContactType('phone')}
-                      className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all ${
-                        contactType === 'phone'
-                          ? 'bg-ryoiki-red text-white'
-                          : 'glass text-ryoiki-white/60 hover:text-ryoiki-white'
-                      }`}
-                    >
-                      Teléfono
-                    </button>
-                  </div>
-
+                  <label className="block text-sm text-ryoiki-white/60 mb-2">Contraseña</label>
                   <div className="relative">
-                    {contactType === 'email' ? (
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ryoiki-white/30" />
-                    ) : (
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ryoiki-white/30" />
-                    )}
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ryoiki-white/30" />
                     <input
-                      type={contactType === 'email' ? 'email' : 'tel'}
-                      value={contact}
-                      onChange={(e) => setContact(e.target.value)}
-                      placeholder={contactType === 'email' ? 'tu@email.com' : '+34 600 000 000'}
-                      className="input-modern w-full pl-12"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="input-modern w-full pl-12 pr-12"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-ryoiki-white/30 hover:text-ryoiki-white/60"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </div>
 
