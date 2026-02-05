@@ -2,21 +2,25 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Gift, Loader2, ChevronRight } from 'lucide-react';
+import { Gift, Loader2, ChevronRight, Plus, Minus } from 'lucide-react';
 import { PokeballIcon } from './PokeballIcon';
-import { COIN_SYSTEM } from '@/lib/packs-data';
+import { redirectToCheckout } from '@/lib/stripe';
 
 interface ContributeButtonProps {
   boxId: string;
-  onContribute: (amount: number) => Promise<void>;
+  onContribute?: (amount: number) => Promise<void>;
   disabled?: boolean;
 }
 
+// Pricing: 8€ = 6 pokeballs + 2€ crowdfund
+const PRICE_PER_POKEBALL = 8 / 6; // ~1.33€
+const CROWDFUND_PER_POKEBALL = 2 / 6; // ~0.33€
+
 const CONTRIBUTION_OPTIONS = [
-  { euros: 8, coins: 6, crowdfund: 2 },
-  { euros: 16, coins: 12, crowdfund: 4 },
-  { euros: 24, coins: 18, crowdfund: 6 },
-  { euros: 40, coins: 30, crowdfund: 10 },
+  { euros: 8, pokeballs: 6, crowdfund: 2 },
+  { euros: 16, pokeballs: 12, crowdfund: 4 },
+  { euros: 24, pokeballs: 18, crowdfund: 6 },
+  { euros: 40, pokeballs: 30, crowdfund: 10 },
 ];
 
 export function ContributeButton({
@@ -27,18 +31,42 @@ export function ContributeButton({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [customPokeballs, setCustomPokeballs] = useState(6);
 
-  const handleContribute = async (euros: number) => {
+  // Calculate custom pricing
+  const customEuros = Math.round(customPokeballs * PRICE_PER_POKEBALL * 100) / 100;
+  const customCrowdfund = Math.round(customPokeballs * CROWDFUND_PER_POKEBALL * 100) / 100;
+  // Round to nearest cent for Stripe
+  const customEurosRounded = Math.ceil(customEuros);
+
+  const handleContribute = async (euros: number, pokeballs: number) => {
     setIsLoading(true);
     setSelectedAmount(euros);
 
     try {
-      await onContribute(euros);
-      setIsOpen(false);
-    } finally {
+      // Redirect to Stripe Checkout
+      await redirectToCheckout({
+        amount: euros,
+        pokeballs,
+        boxId,
+      });
+    } catch (error) {
+      console.error('Checkout error:', error);
       setIsLoading(false);
       setSelectedAmount(null);
     }
+  };
+
+  const handleCustomContribute = async () => {
+    await handleContribute(customEurosRounded, customPokeballs);
+  };
+
+  const incrementPokeballs = () => {
+    setCustomPokeballs(prev => prev + 1);
+  };
+
+  const decrementPokeballs = () => {
+    setCustomPokeballs(prev => Math.max(1, prev - 1));
   };
 
   return (
@@ -85,11 +113,11 @@ export function ContributeButton({
             Elige cuánto quieres aportar
           </p>
 
-          {/* Contribution Options */}
+          {/* Quick Contribution Options */}
           {CONTRIBUTION_OPTIONS.map((option) => (
             <motion.button
               key={option.euros}
-              onClick={() => handleContribute(option.euros)}
+              onClick={() => handleContribute(option.euros, option.pokeballs)}
               disabled={isLoading}
               className={`
                 w-full py-4 px-4
@@ -125,7 +153,7 @@ export function ContributeButton({
                     <div className="flex items-center gap-1.5">
                       <PokeballIcon size={18} />
                       <span className="font-display font-bold text-ryoiki-red">
-                        {option.coins}
+                        {option.pokeballs}
                       </span>
                     </div>
 
@@ -144,6 +172,104 @@ export function ContributeButton({
               )}
             </motion.button>
           ))}
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 py-2">
+            <div className="flex-1 h-px bg-ryoiki-white/10" />
+            <span className="text-xs text-ryoiki-white/30">o personaliza</span>
+            <div className="flex-1 h-px bg-ryoiki-white/10" />
+          </div>
+
+          {/* Custom Pokeball Selector */}
+          <div className="glass rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm text-ryoiki-white/60">Cantidad personalizada</span>
+            </div>
+
+            {/* Pokeball Counter */}
+            <div className="flex items-center justify-center gap-4 mb-4">
+              {/* Minus Button */}
+              <motion.button
+                onClick={decrementPokeballs}
+                disabled={customPokeballs <= 1 || isLoading}
+                className={`
+                  w-12 h-12 rounded-xl
+                  bg-ryoiki-white/5 border border-ryoiki-white/10
+                  flex items-center justify-center
+                  transition-all duration-200
+                  hover:bg-ryoiki-red/20 hover:border-ryoiki-red/30
+                  disabled:opacity-30 disabled:cursor-not-allowed
+                `}
+                whileHover={{ scale: customPokeballs > 1 ? 1.05 : 1 }}
+                whileTap={{ scale: customPokeballs > 1 ? 0.95 : 1 }}
+              >
+                <Minus className="w-5 h-5 text-ryoiki-white" />
+              </motion.button>
+
+              {/* Pokeball Count Display */}
+              <div className="flex items-center gap-3 px-6 py-3 bg-ryoiki-red/10 rounded-xl border border-ryoiki-red/30">
+                <PokeballIcon size={28} />
+                <span className="text-4xl font-display font-bold text-ryoiki-white">
+                  {customPokeballs}
+                </span>
+              </div>
+
+              {/* Plus Button */}
+              <motion.button
+                onClick={incrementPokeballs}
+                disabled={isLoading}
+                className={`
+                  w-12 h-12 rounded-xl
+                  bg-ryoiki-red/20 border border-ryoiki-red/30
+                  flex items-center justify-center
+                  transition-all duration-200
+                  hover:bg-ryoiki-red/30 hover:border-ryoiki-red/50
+                  disabled:opacity-30 disabled:cursor-not-allowed
+                `}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Plus className="w-5 h-5 text-ryoiki-red" />
+              </motion.button>
+            </div>
+
+            {/* Price Summary */}
+            <div className="flex items-center justify-between mb-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-ryoiki-white/50">Tú recibes:</span>
+                <div className="flex items-center gap-1">
+                  <PokeballIcon size={14} />
+                  <span className="font-bold text-ryoiki-red">{customPokeballs}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-ryoiki-white/50">A la caja:</span>
+                <span className="font-bold text-green-400">{customCrowdfund.toFixed(2)}€</span>
+              </div>
+            </div>
+
+            {/* Custom Contribute Button */}
+            <motion.button
+              onClick={handleCustomContribute}
+              disabled={isLoading}
+              className={`
+                w-full py-4 px-6
+                bg-gradient-to-r from-ryoiki-red to-red-600
+                text-white font-display font-bold text-lg
+                rounded-xl
+                transition-all duration-200
+                disabled:opacity-50
+              `}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {isLoading && selectedAmount === customEurosRounded ? (
+                <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+              ) : (
+                <span>Aportar {customEurosRounded}€</span>
+              )}
+            </motion.button>
+          </div>
 
           {/* Info text */}
           <p className="text-[10px] text-ryoiki-white/30 text-center">
