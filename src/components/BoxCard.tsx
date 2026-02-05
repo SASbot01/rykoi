@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { Users, TrendingUp, Clock, Zap } from 'lucide-react';
 import { ProgressBar } from './ProgressBar';
 import { ContributeButton } from './ContributeButton';
+import { useLang } from '@/lib/lang-context';
+import { t } from '@/lib/translations';
 
 interface Contributor {
   username: string;
@@ -50,6 +52,7 @@ export function BoxCard({
 }: BoxCardProps) {
   const [latestContributor, setLatestContributor] = useState<Contributor | null>(null);
   const [showNotification, setShowNotification] = useState(false);
+  const { lang } = useLang();
 
   useEffect(() => {
     if (recentContributors.length > 0) {
@@ -64,10 +67,10 @@ export function BoxCard({
 
   const getStatusBadge = () => {
     const badges = {
-      FUNDING: { color: 'bg-ryoiki-red', text: 'Activa', pulse: true },
-      READY: { color: 'bg-emerald-500', text: 'Lista', pulse: true },
-      BREAKING: { color: 'bg-ryoiki-red', text: 'En Directo', pulse: true },
-      COMPLETED: { color: 'bg-ryoiki-white/20', text: 'Completada', pulse: false },
+      FUNDING: { color: 'bg-ryoiki-red', text: t('box.badge.active', lang), pulse: true },
+      READY: { color: 'bg-emerald-500', text: t('box.badge.ready', lang), pulse: true },
+      BREAKING: { color: 'bg-ryoiki-red', text: t('box.badge.live', lang), pulse: true },
+      COMPLETED: { color: 'bg-ryoiki-white/20', text: t('box.badge.completed', lang), pulse: false },
     };
     return badges[status];
   };
@@ -191,13 +194,13 @@ export function BoxCard({
         <div className="flex items-center gap-4 text-sm">
           <span className="flex items-center gap-1.5 text-ryoiki-white/50 font-body">
             <Users className="w-4 h-4 text-ryoiki-red/70" />
-            {contributorsCount} supporters
+            {contributorsCount} {t('box.supporters', lang)}
           </span>
 
           {scheduledBreak && status === 'FUNDING' && (
             <span className="flex items-center gap-1.5 text-ryoiki-white/50 font-body">
               <Clock className="w-4 h-4 text-ryoiki-red/70" />
-              {formatTimeRemaining(scheduledBreak)}
+              {formatTimeRemaining(scheduledBreak, lang)}
             </span>
           )}
         </div>
@@ -222,7 +225,7 @@ export function BoxCard({
                 <span className="text-ryoiki-red font-semibold">
                   @{latestContributor.username}
                 </span>
-                {' '}aportó{' '}
+                {' '}{t('box.contributed', lang)}{' '}
                 <span className="text-ryoiki-white font-semibold">
                   {latestContributor.amount}€
                 </span>
@@ -257,7 +260,7 @@ export function BoxCard({
             animate={{ scale: [1, 1.01, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            ¡Lista para abrir!
+            {t('box.ready', lang)}
           </motion.div>
         )}
 
@@ -285,7 +288,7 @@ export function BoxCard({
             transition={{ duration: 1.5, repeat: Infinity }}
             whileHover={{ scale: 1.02 }}
           >
-            Ver en Directo
+            {t('box.live', lang)}
           </motion.a>
         )}
       </div>
@@ -293,11 +296,11 @@ export function BoxCard({
   );
 }
 
-function formatTimeRemaining(date: Date): string {
+function formatTimeRemaining(date: Date, lang: string): string {
   const now = new Date();
   const diff = date.getTime() - now.getTime();
 
-  if (diff <= 0) return 'Pronto';
+  if (diff <= 0) return lang === 'es' ? 'Pronto' : 'Soon';
 
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));

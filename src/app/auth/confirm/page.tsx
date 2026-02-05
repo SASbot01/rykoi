@@ -4,9 +4,12 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { CheckCircle, Mail } from 'lucide-react';
 import Link from 'next/link';
+import { useLang } from '@/lib/lang-context';
+import { t } from '@/lib/translations';
 
 export default function ConfirmEmailPage() {
   const [countdown, setCountdown] = useState(5);
+  const { lang } = useLang();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -61,7 +64,7 @@ export default function ConfirmEmailPage() {
           >
             <Mail className="w-6 h-6 text-ryoiki-red" />
             <h1 className="text-2xl font-display font-bold text-ryoiki-white">
-              ¡Email Confirmado!
+              {t('confirm.title', lang)}
             </h1>
           </motion.div>
 
@@ -71,7 +74,7 @@ export default function ConfirmEmailPage() {
             transition={{ delay: 0.4 }}
             className="text-ryoiki-white/60 mb-6"
           >
-            Tu cuenta ha sido verificada correctamente. Ya puedes disfrutar de todas las funciones de Ryōiki.
+            {t('confirm.desc', lang)}
           </motion.p>
 
           {/* Countdown */}
@@ -82,7 +85,7 @@ export default function ConfirmEmailPage() {
             className="bg-ryoiki-white/5 rounded-xl p-4 mb-6"
           >
             <p className="text-sm text-ryoiki-white/50">
-              Redirigiendo en <span className="text-ryoiki-red font-bold">{countdown}</span> segundos...
+              {t('confirm.redirect', lang)} <span className="text-ryoiki-red font-bold">{countdown}</span> {t('confirm.seconds', lang)}
             </p>
           </motion.div>
 
@@ -103,7 +106,7 @@ export default function ConfirmEmailPage() {
                 transition-colors
               "
             >
-              Ir a Ryōiki ahora
+              {t('confirm.go', lang)}
             </Link>
           </motion.div>
         </div>

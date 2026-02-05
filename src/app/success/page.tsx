@@ -6,12 +6,15 @@ import { Suspense, useEffect, useState } from 'react';
 import { CheckCircle, Home, MessageCircle, Sparkles, Loader2 } from 'lucide-react';
 import { PokeballIcon } from '@/components/PokeballIcon';
 import Link from 'next/link';
+import { useLang } from '@/lib/lang-context';
+import { t } from '@/lib/translations';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const pokeballs = searchParams.get('pokeballs') || '6';
   const amount = searchParams.get('amount') || '8';
   const sessionId = searchParams.get('session_id');
+  const { lang } = useLang();
 
   const [isVerifying, setIsVerifying] = useState(true);
   const [verified, setVerified] = useState(false);
@@ -49,7 +52,7 @@ function SuccessContent() {
       <div className="min-h-screen bg-ryoiki-black flex items-center justify-center p-6">
         <div className="glass rounded-4xl p-8 text-center">
           <Loader2 className="w-12 h-12 text-ryoiki-red animate-spin mx-auto mb-4" />
-          <p className="text-ryoiki-white">Verificando pago...</p>
+          <p className="text-ryoiki-white">{t('success.verifying', lang)}</p>
         </div>
       </div>
     );
@@ -111,7 +114,7 @@ function SuccessContent() {
             transition={{ delay: 0.3 }}
             className="text-3xl font-display font-bold text-ryoiki-white mb-2"
           >
-            ¡Pago Completado!
+            {t('success.title', lang)}
           </motion.h1>
 
           <motion.p
@@ -120,7 +123,7 @@ function SuccessContent() {
             transition={{ delay: 0.4 }}
             className="text-ryoiki-white/60 mb-6"
           >
-            Gracias por tu aportación de {amount}€
+            {t('success.thanks', lang)} {amount}€
           </motion.p>
 
           {/* Pokeballs Received */}
@@ -136,7 +139,7 @@ function SuccessContent() {
                 +{pokeballs}
               </span>
             </div>
-            <p className="text-ryoiki-white/60 text-sm">Pokeballs añadidas a tu cuenta</p>
+            <p className="text-ryoiki-white/60 text-sm">{t('success.pokeballs', lang)}</p>
           </motion.div>
 
           {/* Good Luck Message */}
@@ -147,7 +150,7 @@ function SuccessContent() {
             className="flex items-center justify-center gap-2 text-ryoiki-white/80 mb-8"
           >
             <Sparkles className="w-5 h-5 text-yellow-500" />
-            <span>¡Mucha suerte en las aperturas!</span>
+            <span>{t('success.luck', lang)}</span>
             <Sparkles className="w-5 h-5 text-yellow-500" />
           </motion.div>
 
@@ -173,7 +176,7 @@ function SuccessContent() {
               "
             >
               <MessageCircle className="w-5 h-5" />
-              Únete a nuestra comunidad de Discord
+              {t('success.discord', lang)}
             </a>
 
             {/* Back to Home Button */}
@@ -189,7 +192,7 @@ function SuccessContent() {
               "
             >
               <Home className="w-5 h-5" />
-              Volver a la web
+              {t('success.back', lang)}
             </Link>
           </motion.div>
 
@@ -200,7 +203,7 @@ function SuccessContent() {
             transition={{ delay: 0.8 }}
             className="text-xs text-ryoiki-white/40 mt-6"
           >
-            Recibirás un email de confirmación con los detalles
+            {t('success.email', lang)}
           </motion.p>
         </div>
       </motion.div>

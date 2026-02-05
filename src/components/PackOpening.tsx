@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Sparkles, X, Instagram, Calendar, Clock, CheckCircle, ExternalLink } from 'lucide-react';
 import { PokeballIcon } from './PokeballIcon';
+import { useLang } from '@/lib/lang-context';
+import { t } from '@/lib/translations';
 
 interface PackOpeningProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ interface PackOpeningProps {
 
 export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: PackOpeningProps) {
   const [phase, setPhase] = useState<'confirm' | 'processing' | 'success'>('confirm');
+  const { lang } = useLang();
 
   const handlePurchase = async () => {
     setPhase('processing');
@@ -45,7 +48,7 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
   };
 
   const nextFriday = getNextFriday();
-  const formattedDate = nextFriday.toLocaleDateString('es-ES', {
+  const formattedDate = nextFriday.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -158,7 +161,7 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                       <Instagram className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm text-ryoiki-white/60">Apertura en directo</p>
+                      <p className="text-sm text-ryoiki-white/60">{t('pack.live.info', lang)}</p>
                       <p className="font-display font-bold text-ryoiki-white">@s4sf__</p>
                     </div>
                   </div>
@@ -170,13 +173,13 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                     </div>
                     <div className="flex items-center gap-3 text-ryoiki-white/80">
                       <Clock className="w-4 h-4 text-ryoiki-red" />
-                      <span className="text-sm">20:00h (España)</span>
+                      <span className="text-sm">20:00h {t('pack.time.spain', lang)}</span>
                     </div>
                   </div>
                 </div>
 
                 <p className="text-sm text-ryoiki-white/50 mb-6">
-                  Tu sobre se abrirá en directo. ¡No te lo pierdas!
+                  {t('pack.live.desc', lang)}
                 </p>
 
                 {/* Buttons */}
@@ -195,7 +198,7 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                     whileTap={{ scale: 0.98 }}
                   >
                     <Sparkles className="w-5 h-5" />
-                    Comprar Sobre
+                    {t('pack.purchase', lang)}
                     <div className="flex items-center gap-1 ml-2 px-2 py-0.5 bg-white/20 rounded-full">
                       <PokeballIcon size={14} />
                       <span className="text-sm">{packTier}</span>
@@ -212,7 +215,7 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                       transition-colors
                     "
                   >
-                    Cancelar
+                    {t('pack.cancel', lang)}
                   </button>
                 </div>
               </div>
@@ -228,10 +231,10 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                 />
 
                 <h2 className="text-2xl font-display font-bold text-ryoiki-white mb-2">
-                  Procesando...
+                  {t('pack.processing', lang)}
                 </h2>
                 <p className="text-ryoiki-white/50">
-                  Confirmando tu compra
+                  {t('pack.processing.desc', lang)}
                 </p>
               </div>
             )}
@@ -250,11 +253,11 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                 </motion.div>
 
                 <h2 className="text-2xl font-display font-bold text-ryoiki-white mb-2">
-                  ¡Sobre Reservado!
+                  {t('pack.success', lang)}
                 </h2>
 
                 <p className="text-ryoiki-white/60 mb-6">
-                  Tu sobre de <span className="text-ryoiki-white font-semibold">{packName}</span> está listo
+                  {t('pack.success.desc', lang)} <span className="text-ryoiki-white font-semibold">{packName}</span> {t('pack.success.ready', lang)}
                 </p>
 
                 {/* Stream Info Card */}
@@ -270,7 +273,7 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                   </div>
 
                   <div className="text-center mb-4">
-                    <p className="text-ryoiki-white/60 text-sm mb-1">Tu sobre se abrirá</p>
+                    <p className="text-ryoiki-white/60 text-sm mb-1">{t('pack.success.open', lang)}</p>
                     <p className="text-xl font-display font-bold text-ryoiki-white capitalize">
                       {formattedDate}
                     </p>
@@ -294,13 +297,13 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                       transition-opacity
                     "
                   >
-                    Seguir en Instagram
+                    {t('pack.success.follow', lang)}
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </motion.div>
 
                 <p className="text-sm text-ryoiki-white/40 mb-6">
-                  Recibirás una notificación antes del directo
+                  {t('pack.success.notify', lang)}
                 </p>
 
                 <button
@@ -315,7 +318,7 @@ export function PackOpening({ isOpen, onClose, packTier, packImage, packName }: 
                     transition-colors
                   "
                 >
-                  Entendido
+                  {t('pack.success.ok', lang)}
                 </button>
               </div>
             )}

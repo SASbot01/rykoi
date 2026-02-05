@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { Gift, Loader2, ChevronRight, Plus, Minus } from 'lucide-react';
 import { PokeballIcon } from './PokeballIcon';
 import { redirectToCheckout } from '@/lib/stripe';
+import { useLang } from '@/lib/lang-context';
+import { t } from '@/lib/translations';
 
 interface ContributeButtonProps {
   boxId: string;
@@ -38,6 +40,7 @@ export function ContributeButton({
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customPokeballs, setCustomPokeballs] = useState(6);
+  const { lang } = useLang();
 
   // Calculate custom pricing
   const customEuros = Math.round(customPokeballs * PRICE_PER_POKEBALL * 100) / 100;
@@ -107,7 +110,7 @@ export function ContributeButton({
         {/* Button Content */}
         <span className="relative flex items-center justify-center gap-2">
           <Gift className="w-5 h-5" />
-          Apoyar y Conseguir Pokeballs
+          {t('box.contribute', lang)}
         </span>
       </motion.button>
 
@@ -123,7 +126,7 @@ export function ContributeButton({
         <div className="pt-4 space-y-3">
           {/* Explanation */}
           <p className="text-xs text-ryoiki-white/50 text-center mb-2">
-            Elige cuánto quieres aportar
+            {t('box.choose', lang)}
           </p>
 
           {/* Quick Contribution Options */}
@@ -178,7 +181,7 @@ export function ContributeButton({
                       <span className="font-display font-bold text-green-400">
                         {option.crowdfund}€
                       </span>
-                      <span className="text-[10px] text-ryoiki-white/40">caja</span>
+                      <span className="text-[10px] text-ryoiki-white/40">{t('box.custom.caja', lang)}</span>
                     </div>
                   </div>
                 </div>
@@ -189,14 +192,14 @@ export function ContributeButton({
           {/* Divider */}
           <div className="flex items-center gap-3 py-2">
             <div className="flex-1 h-px bg-ryoiki-white/10" />
-            <span className="text-xs text-ryoiki-white/30">o personaliza</span>
+            <span className="text-xs text-ryoiki-white/30">{t('box.custom', lang)}</span>
             <div className="flex-1 h-px bg-ryoiki-white/10" />
           </div>
 
           {/* Custom Pokeball Selector */}
           <div className="glass rounded-2xl p-4">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-ryoiki-white/60">Cantidad personalizada</span>
+              <span className="text-sm text-ryoiki-white/60">{t('box.custom.title', lang)}</span>
             </div>
 
             {/* Pokeball Counter */}
@@ -249,14 +252,14 @@ export function ContributeButton({
             {/* Price Summary */}
             <div className="flex items-center justify-between mb-4 text-sm">
               <div className="flex items-center gap-2">
-                <span className="text-ryoiki-white/50">Tú recibes:</span>
+                <span className="text-ryoiki-white/50">{t('box.custom.receive', lang)}</span>
                 <div className="flex items-center gap-1">
                   <PokeballIcon size={14} />
                   <span className="font-bold text-ryoiki-red">{customPokeballs}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-ryoiki-white/50">A la caja:</span>
+                <span className="text-ryoiki-white/50">{t('box.custom.tobox', lang)}</span>
                 <span className="font-bold text-green-400">{customCrowdfund.toFixed(2)}€</span>
               </div>
             </div>
@@ -279,14 +282,14 @@ export function ContributeButton({
               {isLoading && selectedAmount === customEurosRounded ? (
                 <Loader2 className="w-5 h-5 animate-spin mx-auto" />
               ) : (
-                <span>Aportar {customEurosRounded}€</span>
+                <span>{t('box.custom.contribute', lang)} {customEurosRounded}€</span>
               )}
             </motion.button>
           </div>
 
           {/* Info text */}
           <p className="text-[10px] text-ryoiki-white/30 text-center">
-            El pago se procesa con Stripe de forma segura
+            {t('box.stripe', lang)}
           </p>
         </div>
       </motion.div>

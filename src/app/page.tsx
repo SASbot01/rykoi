@@ -2,11 +2,14 @@
 
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Zap, Users, Package, TrendingUp, ChevronRight, Sparkles, Play, Instagram, ShieldCheck, Gift, Coins } from 'lucide-react';
+import { Zap, Users, Package, TrendingUp, ChevronRight, Sparkles, Play, Instagram, ShieldCheck, Gift, Coins, HelpCircle } from 'lucide-react';
 import { BoxCard } from '@/components/BoxCard';
 import { PackOpening } from '@/components/PackOpening';
 import { AuthModal } from '@/components/AuthModal';
+import { GuideModal } from '@/components/GuideModal';
 import { supabase } from '@/lib/supabase';
+import { useLang } from '@/lib/lang-context';
+import { t, type TranslationKey } from '@/lib/translations';
 
 interface User {
   id: string;
@@ -30,10 +33,10 @@ interface Box {
   is_trending: boolean;
 }
 
-const STATS = [
-  { label: 'Breakers', value: '0', icon: Users },
-  { label: 'Sobres Disponibles', value: '6', icon: Package },
-  { label: 'Total Abierto', value: '0', icon: TrendingUp },
+const STATS: { labelKey: TranslationKey; value: string; icon: typeof Users }[] = [
+  { labelKey: 'stats.breakers', value: '0', icon: Users },
+  { labelKey: 'stats.packs', value: '6', icon: Package },
+  { labelKey: 'stats.opened', value: '0', icon: TrendingUp },
 ];
 
 export default function HomePage() {
@@ -43,6 +46,8 @@ export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [boxes, setBoxes] = useState<Box[]>([]);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const { lang, toggleLang } = useLang();
 
   // Fetch boxes from database
   useEffect(() => {
@@ -238,6 +243,24 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Guide Button */}
+            <button
+              onClick={() => setIsGuideOpen(true)}
+              className="w-10 h-10 glass rounded-xl flex items-center justify-center text-ryoiki-white/70 hover:text-ryoiki-white hover:bg-ryoiki-white/10 transition-all"
+              title={t('guide.nav', lang)}
+            >
+              <HelpCircle className="w-5 h-5" />
+            </button>
+
+            {/* Language Toggle */}
+            <button
+              onClick={toggleLang}
+              className="w-10 h-10 glass rounded-xl flex items-center justify-center text-sm font-display font-bold text-ryoiki-white/70 hover:text-ryoiki-white hover:bg-ryoiki-white/10 transition-all"
+              title={lang === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+            >
+              {lang === 'es' ? 'EN' : 'ES'}
+            </button>
+
             {user ? (
               <div className="flex items-center gap-3">
                 {/* Coin Balance */}
@@ -262,7 +285,7 @@ export default function HomePage() {
                   }}
                   className="text-sm text-ryoiki-white/50 hover:text-ryoiki-red transition-colors"
                 >
-                  Salir
+                  {t('nav.exit', lang)}
                 </button>
               </div>
             ) : (
@@ -270,7 +293,7 @@ export default function HomePage() {
                 onClick={() => setIsAuthOpen(true)}
                 className="btn-primary"
               >
-                Entrar
+                {t('nav.enter', lang)}
               </button>
             )}
           </div>
@@ -298,7 +321,7 @@ export default function HomePage() {
             className="inline-flex items-center gap-2 px-4 py-2 glass-red rounded-full mb-8"
           >
             <Instagram className="w-4 h-4 text-ryoiki-red" />
-            <span className="text-sm font-medium text-ryoiki-white/80">Directos en @s4sf__</span>
+            <span className="text-sm font-medium text-ryoiki-white/80">{t('hero.badge', lang)}</span>
           </motion.div>
 
           {/* Main Title */}
@@ -329,8 +352,8 @@ export default function HomePage() {
             transition={{ delay: 0.3 }}
             className="text-xl md:text-2xl text-ryoiki-white/60 font-body font-light leading-relaxed mb-8 max-w-2xl mx-auto"
           >
-            Abre sobres desde tu casa en{' '}
-            <span className="text-ryoiki-white font-medium">directo</span> cada viernes.
+            {t('hero.desc', lang)}{' '}
+            <span className="text-ryoiki-white font-medium">{t('hero.desc.live', lang)}</span> {t('hero.desc.end', lang)}
           </motion.p>
 
           {/* How it works - Coin System */}
@@ -345,10 +368,9 @@ export default function HomePage() {
                 <div className="w-10 h-10 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
                   <Gift className="w-5 h-5 text-ryoiki-red" />
                 </div>
-                <h3 className="font-display font-bold text-ryoiki-white mb-2">1. Apoya las Cajas</h3>
+                <h3 className="font-display font-bold text-ryoiki-white mb-2">{t('how.step1.title', lang)}</h3>
                 <p className="text-sm text-ryoiki-white/50">
-                  Por cada <span className="text-ryoiki-white font-semibold">8€</span> que aportes al crowdfunding,
-                  recibes <span className="text-ryoiki-red font-semibold">6 pokeballs</span> y 2€ van a la caja.
+                  {t('how.step1.desc', lang)}
                 </p>
               </div>
 
@@ -356,10 +378,9 @@ export default function HomePage() {
                 <div className="w-10 h-10 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
                   <PokeballIcon size={20} />
                 </div>
-                <h3 className="font-display font-bold text-ryoiki-white mb-2">2. Compra Sobres</h3>
+                <h3 className="font-display font-bold text-ryoiki-white mb-2">{t('how.step2.title', lang)}</h3>
                 <p className="text-sm text-ryoiki-white/50">
-                  Usa tus pokeballs para comprar sobres.
-                  <span className="text-ryoiki-white/70"> Los abriremos en directo</span> y las cartas son tuyas.
+                  {t('how.step2.desc', lang)}
                 </p>
               </div>
 
@@ -367,10 +388,9 @@ export default function HomePage() {
                 <div className="w-10 h-10 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
                   <Play className="w-5 h-5 text-ryoiki-red" />
                 </div>
-                <h3 className="font-display font-bold text-ryoiki-white mb-2">3. Cajas para el Canal</h3>
+                <h3 className="font-display font-bold text-ryoiki-white mb-2">{t('how.step3.title', lang)}</h3>
                 <p className="text-sm text-ryoiki-white/50">
-                  Cuando una caja llega al 100%, <span className="text-ryoiki-white/70">la abro en directo</span> para
-                  crear contenido. ¡Gracias por apoyar!
+                  {t('how.step3.desc', lang)}
                 </p>
               </div>
             </div>
@@ -385,7 +405,7 @@ export default function HomePage() {
           >
             {STATS.map((stat, index) => (
               <motion.div
-                key={stat.label}
+                key={stat.labelKey}
                 className="glass px-6 py-4 rounded-3xl min-w-[120px]"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -399,7 +419,7 @@ export default function HomePage() {
                   </span>
                 </div>
                 <span className="text-xs text-ryoiki-white/40 font-body">
-                  {stat.label}
+                  {t(stat.labelKey, lang)}
                 </span>
               </motion.div>
             ))}
@@ -419,7 +439,7 @@ export default function HomePage() {
               whileTap={{ scale: 0.98 }}
             >
               <Sparkles className="w-5 h-5" />
-              Abrir Sobres
+              {t('hero.cta.packs', lang)}
               <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
             <motion.button
@@ -429,7 +449,7 @@ export default function HomePage() {
               whileTap={{ scale: 0.98 }}
             >
               <Gift className="w-5 h-5" />
-              Conseguir Pokeballs
+              {t('hero.cta.pokeballs', lang)}
             </motion.button>
           </motion.div>
         </div>
@@ -447,32 +467,32 @@ export default function HomePage() {
               className="inline-flex items-center gap-2 px-4 py-2 glass-red rounded-full mb-6"
             >
               <Gift className="w-4 h-4 text-ryoiki-red" />
-              <span className="text-sm font-medium text-ryoiki-white/60">Crowdfunding</span>
+              <span className="text-sm font-medium text-ryoiki-white/60">{t('boxes.tag', lang)}</span>
             </motion.div>
 
             <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-4">
-              Apoya las <span className="gradient-text">Cajas</span>
+              {t('boxes.title', lang)} <span className="gradient-text">{t('boxes.title.highlight', lang)}</span>
             </h2>
             <p className="text-ryoiki-white/50 max-w-2xl mx-auto font-body text-lg mb-4">
-              Contribuye al crowdfunding y consigue pokeballs para abrir tus sobres.
+              {t('boxes.subtitle', lang)}
             </p>
 
             {/* Coin explanation */}
             <div className="inline-flex items-center gap-3 px-5 py-3 glass rounded-2xl">
               <div className="flex items-center gap-2">
-                <span className="text-ryoiki-white/60">Por cada</span>
+                <span className="text-ryoiki-white/60">{t('boxes.info.foreach', lang)}</span>
                 <span className="font-display font-bold text-ryoiki-white">8€</span>
               </div>
               <ChevronRight className="w-4 h-4 text-ryoiki-white/30" />
               <div className="flex items-center gap-2">
                 <PokeballIcon size={18} />
                 <span className="font-display font-bold text-ryoiki-red">6</span>
-                <span className="text-ryoiki-white/60">para ti</span>
+                <span className="text-ryoiki-white/60">{t('boxes.info.foryou', lang)}</span>
               </div>
               <span className="text-ryoiki-white/30">+</span>
               <div className="flex items-center gap-2">
                 <span className="font-display font-bold text-green-400">2€</span>
-                <span className="text-ryoiki-white/60">a la caja</span>
+                <span className="text-ryoiki-white/60">{t('boxes.info.tobox', lang)}</span>
               </div>
             </div>
           </div>
@@ -526,16 +546,16 @@ export default function HomePage() {
               className="inline-flex items-center gap-2 px-4 py-2 glass rounded-full mb-6"
             >
               <Package className="w-4 h-4 text-ryoiki-red" />
-              <span className="text-sm font-medium text-ryoiki-white/60">Sobres Disponibles</span>
+              <span className="text-sm font-medium text-ryoiki-white/60">{t('packs.tag', lang)}</span>
             </motion.div>
 
             <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-4">
-              Elige tu <span className="gradient-text">Sobre</span>
+              {t('packs.title', lang)} <span className="gradient-text">{t('packs.title.highlight', lang)}</span>
             </h2>
             <p className="text-ryoiki-white/50 max-w-xl mx-auto font-body text-lg">
-              Usa tus pokeballs para comprar sobres.
+              {t('packs.use', lang)}
               <br />
-              <span className="text-ryoiki-white/70">¡Los abrimos en directo el viernes!</span>
+              <span className="text-ryoiki-white/70">{t('packs.live.friday', lang)}</span>
             </p>
 
             {/* User balance reminder */}
@@ -545,7 +565,7 @@ export default function HomePage() {
                 animate={{ opacity: 1 }}
                 className="mt-4 inline-flex items-center gap-2 px-4 py-2 glass-red rounded-full"
               >
-                <span className="text-ryoiki-white/60 text-sm">Tu saldo:</span>
+                <span className="text-ryoiki-white/60 text-sm">{t('packs.balance', lang)}</span>
                 <PokeballIcon size={18} />
                 <span className="font-display font-bold text-ryoiki-white">{userCoins}</span>
                 {userCoins === 0 && (
@@ -553,7 +573,7 @@ export default function HomePage() {
                     onClick={scrollToBoxes}
                     className="text-xs text-ryoiki-red hover:underline ml-2"
                   >
-                    Conseguir más
+                    {t('packs.getmore', lang)}
                   </button>
                 )}
               </motion.div>
@@ -650,21 +670,20 @@ export default function HomePage() {
               </div>
               <div>
                 <h3 className="text-xl font-display font-bold text-ryoiki-white mb-2">
-                  ¿Quieres vender tus cartas?
+                  {t('sales.want', lang)}
                 </h3>
                 <p className="text-ryoiki-white/70 mb-4">
-                  Si te toca una carta que no quieres quedarte, podemos venderla por ti.
-                  La pondremos en tu perfil al precio que nos indiques.
+                  {t('sales.desc', lang)}
                 </p>
                 <div className="space-y-2 text-sm text-ryoiki-white/60">
                   <p>
-                    • Solo cartas obtenidas en nuestros directos
+                    • {t('sales.only', lang)}
                   </p>
                   <p>
-                    • Comisión: <span className="text-ryoiki-red font-semibold">1%</span> + gastos de envío
+                    • {t('sales.commission', lang)} <span className="text-ryoiki-red font-semibold">1%</span> {t('sales.shipping', lang)}
                   </p>
                   <p>
-                    • No se aceptan cartas externas
+                    • {t('sales.noexternal', lang)}
                   </p>
                 </div>
               </div>
@@ -683,8 +702,8 @@ export default function HomePage() {
             <span className="font-display font-bold tracking-tight">ryōiki</span>
           </div>
           <div className="flex items-center gap-8 text-sm text-ryoiki-white/40 font-body">
-            <a href="#" className="link-underline hover:text-ryoiki-white transition-colors">Términos</a>
-            <a href="#" className="link-underline hover:text-ryoiki-white transition-colors">Privacidad</a>
+            <a href="#" className="link-underline hover:text-ryoiki-white transition-colors">{t('footer.terms', lang)}</a>
+            <a href="#" className="link-underline hover:text-ryoiki-white transition-colors">{t('footer.privacy', lang)}</a>
             <a
               href="https://instagram.com/s4sf__"
               target="_blank"
@@ -718,6 +737,12 @@ export default function HomePage() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onSuccess={handleAuthSuccess}
+      />
+
+      {/* Guide Modal */}
+      <GuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
       />
     </main>
   );

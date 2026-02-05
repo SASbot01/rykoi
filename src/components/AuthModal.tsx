@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { X, User, Mail, Lock, Info, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useLang } from '@/lib/lang-context';
+import { t } from '@/lib/translations';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -25,28 +27,29 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { lang } = useLang();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     if (!email.trim()) {
-      setError('Introduce tu email');
+      setError(t('auth.error.email', lang));
       return;
     }
 
     if (!password.trim()) {
-      setError('Introduce tu contraseña');
+      setError(t('auth.error.password', lang));
       return;
     }
 
     if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+      setError(t('auth.error.password.min', lang));
       return;
     }
 
     if (mode === 'register' && !username.trim()) {
-      setError('Introduce tu nombre de usuario');
+      setError(t('auth.error.username', lang));
       return;
     }
 
@@ -67,7 +70,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
         if (authError) {
           if (authError.message.includes('already registered')) {
-            setError('Este email ya está registrado');
+            setError(t('auth.error.registered', lang));
           } else {
             setError(authError.message);
           }
@@ -100,7 +103,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
         if (authError) {
           if (authError.message.includes('Invalid login')) {
-            setError('Email o contraseña incorrectos');
+            setError(t('auth.error.invalid', lang));
           } else {
             setError(authError.message);
           }
@@ -126,7 +129,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       }
     } catch (err) {
       console.error('Auth error:', err);
-      setError('Error de conexión. Inténtalo de nuevo.');
+      setError(t('auth.error.connection', lang));
     }
 
     setIsLoading(false);
@@ -185,12 +188,12 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
               {/* Title */}
               <h2 className="text-2xl font-display font-bold text-center text-ryoiki-white mb-2">
-                {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+                {mode === 'login' ? t('auth.login', lang) : t('auth.register', lang)}
               </h2>
               <p className="text-center text-ryoiki-white/50 text-sm mb-6">
                 {mode === 'login'
-                  ? 'Accede a tu cuenta de ryōiki'
-                  : 'Únete a la comunidad'}
+                  ? t('auth.login.desc', lang)
+                  : t('auth.register.desc', lang)}
               </p>
 
               {/* Form */}
@@ -198,14 +201,14 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                 {/* Username - only for register */}
                 {mode === 'register' && (
                   <div>
-                    <label className="block text-sm text-ryoiki-white/60 mb-2">Usuario de Instagram</label>
+                    <label className="block text-sm text-ryoiki-white/60 mb-2">{t('auth.username', lang)}</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ryoiki-white/30" />
                       <input
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        placeholder="@tu_usuario_instagram"
+                        placeholder={t('auth.username.placeholder', lang)}
                         className="input-modern w-full pl-12"
                       />
                     </div>
@@ -213,10 +216,10 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                     <div className="mt-2 p-3 bg-ryoiki-red/20 border border-ryoiki-red/50 rounded-xl">
                       <p className="text-xs text-ryoiki-red font-semibold flex items-center gap-2">
                         <span className="w-2 h-2 bg-ryoiki-red rounded-full animate-pulse" />
-                        ¡IMPORTANTE! Usa tu usuario de Instagram exacto
+                        {t('auth.username.warning', lang)}
                       </p>
                       <p className="text-xs text-ryoiki-white/60 mt-1">
-                        Lo necesitamos para verificar tu identidad y abrir tus sobres en directo.
+                        {t('auth.username.why', lang)}
                       </p>
                     </div>
                   </div>
@@ -224,7 +227,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm text-ryoiki-white/60 mb-2">Email</label>
+                  <label className="block text-sm text-ryoiki-white/60 mb-2">{t('auth.email', lang)}</label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ryoiki-white/30" />
                     <input
@@ -239,7 +242,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
                 {/* Password */}
                 <div>
-                  <label className="block text-sm text-ryoiki-white/60 mb-2">Contraseña</label>
+                  <label className="block text-sm text-ryoiki-white/60 mb-2">{t('auth.password', lang)}</label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ryoiki-white/30" />
                     <input
@@ -279,24 +282,24 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                       />
-                      Procesando...
+                      {t('auth.processing', lang)}
                     </span>
                   ) : mode === 'login' ? (
-                    'Entrar'
+                    t('auth.submit.login', lang)
                   ) : (
-                    'Crear Cuenta'
+                    t('auth.submit.register', lang)
                   )}
                 </motion.button>
               </form>
 
               {/* Toggle Mode */}
               <p className="text-center text-ryoiki-white/50 text-sm mt-6">
-                {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
+                {mode === 'login' ? t('auth.toggle.login', lang) : t('auth.toggle.register', lang)}
                 <button
                   onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
                   className="text-ryoiki-red font-semibold ml-1 hover:underline"
                 >
-                  {mode === 'login' ? 'Regístrate' : 'Inicia sesión'}
+                  {mode === 'login' ? t('auth.toggle.login.link', lang) : t('auth.toggle.register.link', lang)}
                 </button>
               </p>
 
@@ -310,13 +313,12 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                   <div className="flex items-start gap-3">
                     <Info className="w-5 h-5 text-ryoiki-red flex-shrink-0 mt-0.5" />
                     <div className="text-xs text-ryoiki-white/70 space-y-2">
-                      <p className="font-semibold text-ryoiki-white">Venta de cartas</p>
+                      <p className="font-semibold text-ryoiki-white">{t('auth.sales.title', lang)}</p>
                       <p>
-                        Solo puedes vender cartas que hayas obtenido en nuestros directos.
-                        Las pondremos en tu perfil al precio que nos indiques.
+                        {t('auth.sales.desc', lang)}
                       </p>
                       <p className="text-ryoiki-white/50">
-                        Comisión: <span className="text-ryoiki-red">1%</span> + gastos de envío
+                        {t('auth.sales.commission', lang)}
                       </p>
                     </div>
                   </div>
