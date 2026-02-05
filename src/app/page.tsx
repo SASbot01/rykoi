@@ -241,7 +241,7 @@ export default function HomePage() {
             transition={{ delay: 0.3 }}
             className="text-xl md:text-2xl text-ryoiki-white/60 font-body font-light leading-relaxed mb-8 max-w-2xl mx-auto"
           >
-            Abre sobres de Pokémon en{' '}
+            Abre sobres desde tu casa en{' '}
             <span className="text-ryoiki-white font-medium">directo</span> cada viernes.
           </motion.p>
 
