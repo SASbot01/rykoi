@@ -2,9 +2,10 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Zap, Users, Package, TrendingUp, ChevronRight, Sparkles } from 'lucide-react';
+import { Zap, Users, Package, TrendingUp, ChevronRight, Sparkles, Play, Instagram, ShieldCheck } from 'lucide-react';
 import { BoxCard } from '@/components/BoxCard';
 import { PackOpening } from '@/components/PackOpening';
+import { AuthModal, type UserData } from '@/components/AuthModal';
 import { PACKS, type PackData } from '@/lib/packs-data';
 
 // Mock Data for boxes
@@ -45,15 +46,16 @@ const MOCK_BOXES = [
 ];
 
 const STATS = [
-  { label: 'Breakers', value: '2,847', icon: Users },
-  { label: 'Packs Available', value: '6', icon: Package },
-  { label: 'Total Opened', value: '$47K', icon: TrendingUp },
+  { label: 'Breakers', value: '0', icon: Users },
+  { label: 'Packs Disponibles', value: '6', icon: Package },
+  { label: 'Total Abierto', value: '$0', icon: TrendingUp },
 ];
 
 export default function HomePage() {
   const [isPackOpen, setIsPackOpen] = useState(false);
   const [selectedPack, setSelectedPack] = useState<PackData | null>(null);
-  const userCoins = 250;
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
 
   const handleContribute = async (amount: number) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -61,12 +63,21 @@ export default function HomePage() {
   };
 
   const handleBuyPack = (pack: PackData) => {
-    if (pack.price <= userCoins) {
-      setSelectedPack(pack);
-      setIsPackOpen(true);
+    if (!user) {
+      setIsAuthOpen(true);
+      return;
     }
+    setSelectedPack(pack);
+    setIsPackOpen(true);
   };
 
+  const handleAuthSuccess = (userData: UserData) => {
+    setUser(userData);
+  };
+
+  const scrollToPacks = () => {
+    document.getElementById('packs-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <main className="relative min-h-screen bg-ryoiki-black font-body">
@@ -108,16 +119,31 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 px-5 py-2.5 glass-red rounded-full">
-              <span className="text-ryoiki-white/50 text-sm font-body">Balance</span>
-              <span className="font-display font-bold text-ryoiki-red">${userCoins}</span>
-            </div>
-            <button className="btn-secondary">
-              Buy Coins
-            </button>
-            <button className="btn-primary">
-              Connect
-            </button>
+            {user ? (
+              <div className="flex items-center gap-3">
+                <div className="hidden md:flex items-center gap-2 px-4 py-2.5 glass rounded-full">
+                  <div className="w-8 h-8 bg-ryoiki-red/20 rounded-full flex items-center justify-center">
+                    <span className="text-ryoiki-red font-display font-bold text-sm">
+                      {user.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="font-medium text-ryoiki-white">{user.name}</span>
+                </div>
+                <button
+                  onClick={() => setUser(null)}
+                  className="text-sm text-ryoiki-white/50 hover:text-ryoiki-red transition-colors"
+                >
+                  Salir
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                className="btn-primary"
+              >
+                Entrar
+              </button>
+            )}
           </div>
         </div>
       </nav>
@@ -152,8 +178,8 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 px-4 py-2 glass-red rounded-full mb-8"
           >
-            <Sparkles className="w-4 h-4 text-ryoiki-red" />
-            <span className="text-sm font-medium text-ryoiki-white/80">Now in Genesis Phase</span>
+            <Instagram className="w-4 h-4 text-ryoiki-red" />
+            <span className="text-sm font-medium text-ryoiki-white/80">Directos en @s4sf__</span>
           </motion.div>
 
           {/* Main Title - Modern Art Style */}
@@ -177,23 +203,66 @@ export default function HomePage() {
             領域展開
           </motion.p>
 
-          {/* Description */}
-          <motion.p
+          {/* Description - How it works */}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-xl md:text-2xl text-ryoiki-white/60 mb-12 max-w-2xl mx-auto font-body font-light leading-relaxed"
+            className="max-w-2xl mx-auto mb-12"
           >
-            Open packs. Collect NFTs. Win real cards.
-            <br />
-            <span className="text-ryoiki-white font-medium">Enter the domain.</span>
-          </motion.p>
+            <p className="text-xl md:text-2xl text-ryoiki-white/60 font-body font-light leading-relaxed mb-6">
+              Compra sobres de Pokémon y los abrimos{' '}
+              <span className="text-ryoiki-white font-medium">en directo</span> en Instagram.
+            </p>
+
+            {/* How it works steps */}
+            <div className="grid md:grid-cols-3 gap-4 text-left">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="glass p-4 rounded-2xl"
+              >
+                <div className="w-8 h-8 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
+                  <span className="text-ryoiki-red font-display font-bold">1</span>
+                </div>
+                <h3 className="font-display font-bold text-ryoiki-white mb-1">Elige tu sobre</h3>
+                <p className="text-sm text-ryoiki-white/50">Selecciona entre nuestros packs disponibles</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="glass p-4 rounded-2xl"
+              >
+                <div className="w-8 h-8 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
+                  <Play className="w-4 h-4 text-ryoiki-red" />
+                </div>
+                <h3 className="font-display font-bold text-ryoiki-white mb-1">Directo en Instagram</h3>
+                <p className="text-sm text-ryoiki-white/50">Cada viernes a las 20:00h abrimos tus sobres</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="glass p-4 rounded-2xl"
+              >
+                <div className="w-8 h-8 bg-ryoiki-red/20 rounded-xl flex items-center justify-center mb-3">
+                  <ShieldCheck className="w-4 h-4 text-ryoiki-red" />
+                </div>
+                <h3 className="font-display font-bold text-ryoiki-white mb-1">Recibe tus cartas</h3>
+                <p className="text-sm text-ryoiki-white/50">Te enviamos lo que salga o véndelo en tu perfil</p>
+              </motion.div>
+            </div>
+          </motion.div>
 
           {/* Stats - Modern Cards */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.7 }}
             className="flex justify-center gap-4 md:gap-6 mb-14"
           >
             {STATS.map((stat, index) => (
@@ -202,7 +271,7 @@ export default function HomePage() {
                 className="glass px-6 py-4 rounded-3xl min-w-[120px]"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 + index * 0.1 }}
+                transition={{ delay: 0.8 + index * 0.1 }}
                 whileHover={{ scale: 1.02, y: -2 }}
               >
                 <div className="flex items-center justify-center gap-2 mb-1">
@@ -218,31 +287,28 @@ export default function HomePage() {
             ))}
           </motion.div>
 
-          {/* CTA Buttons */}
+          {/* CTA Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            transition={{ delay: 0.9 }}
           >
             <motion.button
-              className="btn-primary flex items-center justify-center gap-2 group text-base"
+              onClick={scrollToPacks}
+              className="btn-primary flex items-center justify-center gap-2 group text-base mx-auto"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Zap className="w-5 h-5" />
-              Open Packs
+              <Sparkles className="w-5 h-5" />
+              Abrir Sobres
               <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
-            <button className="btn-secondary text-base">
-              View Collection
-            </button>
           </motion.div>
         </div>
       </section>
 
       {/* ===== PACKS SECTION ===== */}
-      <section className="relative py-24 px-6 z-10">
+      <section id="packs-section" className="relative py-24 px-6 z-10">
         {/* Abstract background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-ryoiki-red/5 rounded-full blur-3xl" />
@@ -257,15 +323,16 @@ export default function HomePage() {
               className="inline-flex items-center gap-2 px-4 py-2 glass rounded-full mb-6"
             >
               <Package className="w-4 h-4 text-ryoiki-red" />
-              <span className="text-sm font-medium text-ryoiki-white/60">Available Packs</span>
+              <span className="text-sm font-medium text-ryoiki-white/60">Sobres Disponibles</span>
             </motion.div>
 
             <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-4">
-              Open <span className="gradient-text">Packs</span>
+              Elige tu <span className="gradient-text">Sobre</span>
             </h2>
             <p className="text-ryoiki-white/50 max-w-xl mx-auto font-body text-lg">
-              Each pack contains cards with dynamic rarities.
-              Pull rare cards and win physical copies.
+              Compra un sobre y lo abriremos en directo el próximo viernes.
+              <br />
+              <span className="text-ryoiki-white/70">¡Todas las cartas son tuyas!</span>
             </p>
           </div>
 
@@ -275,12 +342,11 @@ export default function HomePage() {
               <motion.button
                 key={pack.id}
                 onClick={() => handleBuyPack(pack)}
-                disabled={pack.price > userCoins}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
-                className={`
+                className="
                   relative
                   glass
                   rounded-3xl
@@ -288,13 +354,10 @@ export default function HomePage() {
                   flex flex-col items-center
                   transition-all duration-300
                   overflow-hidden
-                  ${pack.price <= userCoins
-                    ? 'hover:shadow-glow cursor-pointer group'
-                    : 'opacity-40 cursor-not-allowed'
-                  }
-                `}
-                whileHover={pack.price <= userCoins ? { scale: 1.03, y: -5 } : {}}
-                whileTap={pack.price <= userCoins ? { scale: 0.97 } : {}}
+                  hover:shadow-glow cursor-pointer group
+                "
+                whileHover={{ scale: 1.03, y: -5 }}
+                whileTap={{ scale: 0.97 }}
               >
                 {/* Featured badge */}
                 {pack.featured && (
@@ -340,48 +403,41 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== LIVE BREAKS SECTION ===== */}
-      <section className="relative py-24 px-6 z-10">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ryoiki-red opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-ryoiki-red" />
-                </span>
-                <span className="text-sm font-mono text-ryoiki-red tracking-wider">LIVE</span>
+      {/* ===== INFO SECTION - Sales Policy ===== */}
+      <section className="relative py-16 px-6 z-10">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="glass-red rounded-4xl p-8"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-ryoiki-red/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <ShieldCheck className="w-6 h-6 text-ryoiki-red" />
               </div>
-              <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight">
-                Box Breaks
-              </h2>
+              <div>
+                <h3 className="text-xl font-display font-bold text-ryoiki-white mb-2">
+                  ¿Quieres vender tus cartas?
+                </h3>
+                <p className="text-ryoiki-white/70 mb-4">
+                  Si te toca una carta que no quieres quedarte, podemos venderla por ti.
+                  La pondremos en tu perfil al precio que nos indiques.
+                </p>
+                <div className="space-y-2 text-sm text-ryoiki-white/60">
+                  <p>
+                    • Solo cartas obtenidas en nuestros directos
+                  </p>
+                  <p>
+                    • Comisión: <span className="text-ryoiki-red font-semibold">1%</span> + gastos de envío
+                  </p>
+                  <p>
+                    • No se aceptan cartas externas
+                  </p>
+                </div>
+              </div>
             </div>
-            <motion.button
-              className="flex items-center gap-1 text-ryoiki-white/60 hover:text-ryoiki-red transition-colors font-medium"
-              whileHover={{ x: 4 }}
-            >
-              View all <ChevronRight className="w-4 h-4" />
-            </motion.button>
-          </div>
-
-          {/* Box Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {MOCK_BOXES.map((box, index) => (
-              <motion.div
-                key={box.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <BoxCard
-                  {...box}
-                  onContribute={handleContribute}
-                  userCoins={userCoins}
-                />
-              </motion.div>
-            ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -395,10 +451,17 @@ export default function HomePage() {
             <span className="font-display font-bold tracking-tight">ryōiki</span>
           </div>
           <div className="flex items-center gap-8 text-sm text-ryoiki-white/40 font-body">
-            <a href="#" className="link-underline hover:text-ryoiki-white transition-colors">Terms</a>
-            <a href="#" className="link-underline hover:text-ryoiki-white transition-colors">Privacy</a>
-            <a href="#" className="link-underline hover:text-ryoiki-white transition-colors">Discord</a>
-            <a href="#" className="link-underline hover:text-ryoiki-white transition-colors">Twitter</a>
+            <a href="#" className="link-underline hover:text-ryoiki-white transition-colors">Términos</a>
+            <a href="#" className="link-underline hover:text-ryoiki-white transition-colors">Privacidad</a>
+            <a
+              href="https://instagram.com/s4sf__"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-underline hover:text-ryoiki-white transition-colors flex items-center gap-1"
+            >
+              <Instagram className="w-4 h-4" />
+              @s4sf__
+            </a>
           </div>
           <div className="text-sm text-ryoiki-white/20 font-body">
             © 2025 ryōiki
@@ -413,6 +476,13 @@ export default function HomePage() {
         packTier={selectedPack?.price || 6}
         packImage={selectedPack?.image}
         packName={selectedPack?.name}
+      />
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onSuccess={handleAuthSuccess}
       />
     </main>
   );
